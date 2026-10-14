@@ -115,9 +115,9 @@
 
 | 类型 | 线索 | 要点 |
 |---|---|---|
-| 临时研究助理 | Deakin Casual Research Assistant（孕期队列研究数据收集） | $48.90/小时 + 11% super |
+| 临时研究助理 | Deakin Casual Research Assistant（Triple B 孕期队列研究） | **已截止（2026-02-22）**；$48.90/小时 + 11% super；需 Working with Children Check |
 | 兼职研究助理 | Deakin Research Assistant（Burwood，0.4–0.6 FTE，12 个月） | 约 $76k–83k（全职折算） |
-| 兼职研究助理 | 墨大 物理治疗 课程映射研究（0.1 FTE，6 个月） | 工时很少 |
+| 兼职研究助理 | 墨大 物理治疗 课程映射研究（0.1 FTE，6 个月） | **找不到原岗位**；链接在墨大"仅限在职员工"招聘站，大概率已截止或不对外 |
 | 兼职临床试验助理 | Western Health（Sunshine）Clinical Trial Assistant | 肿瘤/血液试验；经验"有更好、非必需"；$70k–80k（全职折算） |
 | 兼职临床试验助理 | Alfred Health / MASC Trials Clinical Trials Assistant | 每两周 60.8 小时，超过学生签证上限 |
 | 兼职/临时行政 | Western Health Ward Clerk | 优先每周 3 班以上，含晚班 |
