@@ -78,3 +78,31 @@
 - https://www.pharmadiversityjobboard.com/job/analyst-associate-consultant-heor-14613980
 - https://visaplan.au/temporary-graduate-visa-changes-july-2024/
 - https://www.widen.com.au/485-temporary-graduate-visa/
+
+---
+
+# 补充：按行业搜索的线索（2026-10-14，未核实是否在招）
+
+| 行业 | 线索 | 要点 |
+|---|---|---|
+| 医药供应链 | CSL 2026 Supply Chain Graduate（Procurement，Broadmeadows） | 两年毕业生项目；偏好供应链/商科/信息系统；往期薪资约 $85–88k |
+| 临床研究 | Alfred Health / MASC Trials：Clinical Trials Assistant、CTA & Administrative Officer、Clinical Data Manager | St Kilda Road；6 个月合同可续 |
+| 临床数据 | 墨大 Data Coordinator（SNAP 试验，Parkville） | 至 2027-06；$100.8–109.2k + 17% super；要求临床试验数据管理经验 |
+| 老年护理/NDIS | Advanced Integrity Care：Quality Compliance Officer（住宿型养老 / 居家养老，远程） | 需临床知识和审计经验 |
+| 初级卫生网络 | North Western Melbourne PHN：Data Analyst（往期，2025） | Band 3；Python/R、Power BI；适合初中级数据能力 |
+| 州政府 | Project Officer – Data Analytics（VPS 3） | $81,496–98,955 |
+| 医疗咨询 | FTI Consulting 2027 Health Graduate Program | 列出 ACT/NSW/WA，未见墨尔本 |
+| 健康保险 | 未搜到 Bupa / Medibank / HCF / nib 的毕业生岗位 | 需直接看各家招聘页 |
+| HTA/市场准入 | Product Life Group 市场准入岗位 | 要求 2–5 年经验，非入门 |
+
+来源：
+- https://au.gradconnection.com/employers/csl/jobs/csl-2026-supply-chain-graduate-procurement/
+- https://careers.alfredhealth.org.au/job/3D9X6/EGMKURI6V/clinical-trials-assistant
+- https://careers.alfredhealth.org.au/job/B7ANX/KJOE45SIL/clinical-trial-assistant-administrative-officer
+- https://careers.alfredhealth.org.au/job/4P49F/QP0XYSX7I/clinical-data-manager
+- https://hatch.team/job/data-coordinator-job_3E8Ae2x64CPv6Id1RAVWuLzz5er
+- https://au.seek.com/Advanced-Integrity-Care-jobs/remote
+- https://www.ethicaljobs.com.au/members/northwestern_bs/data-analyst-2
+- https://www.careers.vic.gov.au/job/project-officer-data-analytics-76270
+- https://au.gradconnection.com/employers/fti-consulting/jobs/fti-consulting-2027-accounting-finance-graduate-program-restructuring-insolvency-nsw-2-3-2-2-2-2-2-2-2-2-2-2-2-2-2-2-2-2-2-2-2-2-2-2-2-2-2-2-2-2-2-2-2-2-2/
+- https://www.productlifegroup.com/?p=11769
