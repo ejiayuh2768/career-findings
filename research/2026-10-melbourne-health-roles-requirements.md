@@ -106,3 +106,36 @@
 - https://www.careers.vic.gov.au/job/project-officer-data-analytics-76270
 - https://au.gradconnection.com/employers/fti-consulting/jobs/fti-consulting-2027-accounting-finance-graduate-program-restructuring-insolvency-nsw-2-3-2-2-2-2-2-2-2-2-2-2-2-2-2-2-2-2-2-2-2-2-2-2-2-2-2-2-2-2-2-2-2-2-2/
 - https://www.productlifegroup.com/?p=11769
+
+---
+
+# 补充：读书期间可做的兼职 / 临时工 / 实习线索（2026-10-14，未核实是否在招）
+
+学生签证开学期间每两周最多工作 48 小时（约 0.6 FTE）。
+
+| 类型 | 线索 | 要点 |
+|---|---|---|
+| 临时研究助理 | Deakin Casual Research Assistant（孕期队列研究数据收集） | $48.90/小时 + 11% super |
+| 兼职研究助理 | Deakin Research Assistant（Burwood，0.4–0.6 FTE，12 个月） | 约 $76k–83k（全职折算） |
+| 兼职研究助理 | 墨大 物理治疗 课程映射研究（0.1 FTE，6 个月） | 工时很少 |
+| 兼职临床试验助理 | Western Health（Sunshine）Clinical Trial Assistant | 肿瘤/血液试验；经验"有更好、非必需"；$70k–80k（全职折算） |
+| 兼职临床试验助理 | Alfred Health / MASC Trials Clinical Trials Assistant | 每两周 60.8 小时，超过学生签证上限 |
+| 兼职/临时行政 | Western Health Ward Clerk | 优先每周 3 班以上，含晚班 |
+| 兼职行政 | Melbourne Private Hospital Administration Officer | 每周 16–20 小时 |
+| 实习 | Medibank 实习（墨尔本/悉尼） | 往期 2 月申请、3 月开始，留意下一期 |
+| 毕业生项目 | IMRA Surgical（North Melbourne，医疗器械）两年毕业生项目 | 适合毕业后 |
+
+不适合：Austin Health 临时临床试验研究助理（要求 AHPRA 注册）；RMH Clinical Research Associate（要求有经验）。
+
+来源：
+- https://careers.deakin.edu.au/en/job/580866/casual-research-assistant
+- https://careers.deakin.edu.au/en/job/580974/research-assistant
+- https://jobs.staff.unimelb.edu.au/en/job/920098/research-assistant
+- https://www.careers.vic.gov.au/job/clinical-trial-assistant-cancer-research-73407
+- https://careers.alfredhealth.org.au/job/3D9X6/EGMKURI6V/clinical-trials-assistant
+- https://careers.wh.org.au/job/Ward-Clerk/1364997666/
+- https://au.indeed.com/Data-Entry-jobs-in-Melbourne-VIC
+- https://www.medibank.com.au/overseas-health-insurance/medibank-academy/internships/6-months-faqs/
+- https://au.indeed.com/Internship,-Biomedical-jobs-in-Melbourne-VIC
+- https://careers.austin.org.au/job/Heidelberg-Research-Assistant/1329488666
+- https://www.careers.vic.gov.au/job/clinical-research-associate-79968
