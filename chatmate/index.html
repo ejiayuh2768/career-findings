@@ -656,10 +656,10 @@ async function ai(system, turns, opts = {}) {
     return await callProvider(settings, system, turns, opts);
   } catch (e) {
     const b = settings.backup;
-    const unreachable = e && (e.code === "network" || e.code === "region");
+    const unreachable = e && (e.code === "network" || e.code === "region" || e.code === "rate");
     if (!unreachable || !b || !b.key || opts.noBackup) throw e;
     const r = await callProvider(b, system, turns, opts);
-    if (!usedBackupNotice) { usedBackupNotice = true; toast(`主 AI 连不上，已自动改用备用的 ${PROVIDERS[b.provider].label.replace(/（.*）/, "")}。`); }
+    if (!usedBackupNotice) { usedBackupNotice = true; toast(`${e.code === "rate" ? "主 AI 的免费额度暂时用完了" : "主 AI 连不上"}，已自动改用备用的 ${PROVIDERS[b.provider].label.replace(/（.*）/, "")}。`); }
     return r;
   }
 }
@@ -739,7 +739,7 @@ function errText(e) {
   switch (e && e.code) {
     case "nokey": return "还没设置 AI。点右上角齿轮去设置。";
     case "auth": return "API Key 不对或没有权限，去设置里检查一下。" + d;
-    case "rate": return "请求太频繁或免费额度用完了，等一会儿再试。" + d;
+    case "rate": return "免费额度暂时用完了（或者发得太快）。等一分钟再试；如果是今天的额度用完了，明天会自动恢复。在设置里加一个「备用 AI」，用完时会自动切换。" + d;
     case "model": return "找不到这个模型，去设置里检查模型名称。" + d;
     case "network": return settings.backup && settings.backup.key
       ? "主 AI 和备用 AI 都连不上，检查一下网络。"
