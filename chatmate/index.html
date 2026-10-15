@@ -125,7 +125,7 @@ a { color: var(--me); }
 .fix { background: var(--surface); border-radius: 14px; padding: 12px 14px; display: flex; flex-direction: column; gap: 6px; line-height: 1.45; }
 .fix .tag { align-self: flex-start; font-size: 11px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; padding: 2px 8px; border-radius: 99px; background: var(--accent-soft); color: var(--accent); }
 .fix .tag.grammar { color: var(--bad); }
-.fix .was { color: var(--muted); text-decoration: line-through; text-decoration-color: var(--bad); }
+.fix .was { color: var(--muted); }
 .fix .now { color: var(--good); font-weight: 600; }
 .fix .why { font-size: 14px; color: var(--muted); }
 .phrase b { font-family: var(--display); font-size: 17px; }
@@ -155,11 +155,33 @@ a { color: var(--me); }
 .feel { font-size: 12px; color: var(--muted); display: flex; gap: 6px; align-items: baseline; flex-wrap: wrap; margin-top: 2px; line-height: 1.4; }
 .feel .d { font-weight: 700; font-variant-numeric: tabular-nums; }
 .feel .d.up { color: var(--good); } .feel .d.down { color: var(--bad); }
-.fixnote { font-size: 13px; line-height: 1.45; background: var(--accent-soft); color: var(--ink); border-radius: 10px; padding: 6px 10px; text-align: left; }
-.fixnote s { color: var(--muted); text-decoration-color: var(--bad); }
-.fixnote b { color: var(--good); font-weight: 600; }
-.fixnote span { color: var(--muted); }
 .composer textarea:disabled { opacity: .6; }
+/* Voice call: one deliberate dark look in both themes */
+.call { position: fixed; inset: 0; z-index: 15; background: #0F1724; color: #EEF3F9; display: flex; flex-direction: column; align-items: center; gap: 14px; padding-top: calc(16px + env(safe-area-inset-top, 0px)); padding-bottom: calc(22px + env(safe-area-inset-bottom, 0px)); padding-left: max(20px, env(safe-area-inset-left, 0px)); padding-right: max(20px, env(safe-area-inset-right, 0px)); color-scheme: dark; }
+.call-top { width: 100%; max-width: 560px; display: flex; justify-content: space-between; font-size: 13px; color: #95A3B6; font-variant-numeric: tabular-nums; }
+.call-who { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.call-avatar { width: 104px; height: 104px; border-radius: 50%; display: grid; place-items: center; font-family: var(--display); font-weight: 700; font-size: 44px; color: #fff; box-shadow: 0 0 0 0 rgba(242, 177, 76, 0); transition: box-shadow .25s; }
+.call-avatar.talking { box-shadow: 0 0 0 6px rgba(242, 177, 76, .55), 0 0 0 14px rgba(242, 177, 76, .18); }
+.call-avatar.hearing { box-shadow: 0 0 0 6px rgba(99, 140, 255, .55), 0 0 0 14px rgba(99, 140, 255, .18); }
+.call-name { font-family: var(--display); font-weight: 700; font-size: 26px; }
+.call-status { font-size: 14px; color: #B8C4D4; min-height: 1.4em; text-align: center; }
+.call-feel { font-size: 13px; color: #95A3B6; min-height: 1.4em; text-align: center; }
+.call-feel .up { color: #6DD39B; font-weight: 700; } .call-feel .down { color: #F59173; font-weight: 700; }
+.call-caps { flex: 1; min-height: 0; width: 100%; max-width: 560px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; padding-block: 4px; }
+.cap { max-width: 88%; padding: 8px 12px; border-radius: 14px; line-height: 1.4; font-size: 15px; overflow-wrap: anywhere; }
+.cap.them { align-self: flex-start; background: #1C2738; }
+.cap.me { align-self: flex-end; background: #2347C8; }
+.cap.live { opacity: .65; font-style: italic; }
+.cap .cut { color: #F59173; font-size: 12px; margin-left: 6px; font-style: normal; }
+.cap-off { margin: auto; color: #95A3B6; font-size: 14px; }
+.call-tip { margin: 0; font-size: 12px; color: #7F8DA1; text-align: center; }
+.call-ctrls { display: flex; gap: 28px; align-items: flex-start; }
+.cbtn { background: none; border: 0; color: #EEF3F9; display: flex; flex-direction: column; align-items: center; gap: 6px; font-size: 12px; }
+.cbtn .ci { width: 60px; height: 60px; border-radius: 50%; background: #233046; display: grid; place-items: center; font-weight: 700; font-size: 18px; }
+.cbtn .ci svg { width: 26px; height: 26px; }
+.cbtn[aria-pressed="true"] .ci { background: #EEF3F9; color: #0F1724; }
+.cbtn.hang .ci { background: #E0483E; color: #fff; width: 68px; height: 68px; }
+@media (prefers-reduced-motion: reduce) { .call-avatar { transition: none; } }
 .toast { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(130px + env(safe-area-inset-bottom, 0px)); background: var(--ink); color: var(--bg); padding: 10px 14px; border-radius: 12px; font-size: 14px; line-height: 1.45; width: min(92vw, 420px); z-index: 20; }
 </style>
 </head>
@@ -172,6 +194,9 @@ a { color: var(--me); }
         <div class="who-name"><span id="pName">Maya</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg></div>
         <div class="who-meta" id="pMeta"></div>
       </div>
+    </button>
+    <button class="iconbtn" id="callBtn" aria-label="语音通话">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2Z"/></svg>
     </button>
     <button class="iconbtn" id="readBtn" aria-pressed="false" aria-label="自动朗读回复">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H3v6h3l5 4V5Z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M18.5 5.5a9 9 0 0 1 0 13"/></svg>
@@ -202,6 +227,23 @@ a { color: var(--me); }
       </button>
     </form>
   </footer>
+</div>
+
+<div class="call" id="call" hidden role="dialog" aria-label="语音通话">
+  <div class="call-top"><span id="callKind">语音通话</span><span id="callClock">0:00</span></div>
+  <div class="call-who">
+    <div class="call-avatar" id="callAvatar">M</div>
+    <div class="call-name" id="callName">Maya</div>
+    <div class="call-status" id="callStatus">在听…</div>
+    <div class="call-feel" id="callFeel"></div>
+  </div>
+  <div class="call-caps" id="callCaps"></div>
+  <p class="call-tip">戴耳机效果最好：随时开口就能打断对方。</p>
+  <div class="call-ctrls">
+    <button class="cbtn" id="capBtn" aria-pressed="true"><span class="ci">Aa</span><span>字幕</span></button>
+    <button class="cbtn hang" id="hangBtn"><span class="ci"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 9c-1.6 0-3.2.3-4.6.7v3.1c0 .4-.2.7-.6.9-1 .5-1.9 1.1-2.7 1.8-.2.2-.4.3-.7.3s-.5-.1-.7-.3L.3 13c-.2-.2-.3-.4-.3-.7s.1-.5.3-.7C3.3 8.7 7.4 7 12 7s8.7 1.7 11.7 4.6c.2.2.3.4.3.7s-.1.5-.3.7l-2.5 2.5c-.2.2-.4.3-.7.3s-.5-.1-.7-.3c-.8-.7-1.7-1.3-2.7-1.8-.3-.2-.6-.5-.6-.9V9.7C15.2 9.3 13.6 9 12 9Z"/></svg></span><span>挂断</span></button>
+    <button class="cbtn" id="muteBtn" aria-pressed="false"><span class="ci"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg></span><span>静音</span></button>
+  </div>
 </div>
 
 <div class="scrim" id="scrim" hidden><div class="sheet" id="sheet" role="dialog" aria-modal="true"></div></div>
@@ -477,7 +519,6 @@ function render() {
     }
     const parts = m.role === "user" ? [m.text] : m.parts;
     for (const t of parts) group.append(bubble(t, m.role));
-    if (m.role === "user" && m.fix) group.append(fixNote(m.fix, c.name));
     if (m.role === "assistant" && m.done && typeof m.delta === "number") group.append(feelChip(m));
   }
   const ended = isEnded();
@@ -501,6 +542,7 @@ function render() {
   ["hintBtn", "topicBtn"].forEach(id => { $(id).disabled = ended; });
   if (typingEl) thread.append(typingEl);
   scrollDown();
+  if (vm.on) updateCaps();
 }
 function isEnded() { const l = msgs[msgs.length - 1]; return !!(l && l.role === "assistant" && l.end && l.done); }
 function feelChip(m) {
@@ -510,12 +552,6 @@ function feelChip(m) {
   f.append(d);
   if (m.why) f.append(el("span", null, m.why));
   return f;
-}
-function fixNote(fx, name) {
-  const n = el("div", "fixnote");
-  n.append(el("span", null, `${name} 提醒：`), el("s", null, fx.you), " → ", el("b", null, fx.better));
-  if (fx.note) n.append(el("span", null, `（${fx.note}）`));
-  return n;
 }
 function gapTextZh(ts) {
   const h = (Date.now() - ts) / 36e5;
@@ -726,18 +762,27 @@ function relationText(c) {
 function chatSystem() {
   const c = contact();
   const talk = c.mode === "talk";
-  const where = talk
+  const where = voiceActive && !talk
+    ? `You're on a voice call with them (like a WhatsApp call). You live in ${c.city}; right now it's ${localTime(c)} on a ${localDay(c)} there.${c.sceneEn ? " Situation: " + c.sceneEn + "." : ""}`
+    : talk
     ? `This is a face-to-face conversation happening right now in ${c.city}. Situation: ${c.sceneEn}. Write only what you say out loud, as natural spoken English (fillers like "oh", "yeah", "I mean", "so" are fine). No stage directions or actions.`
     : `You're texting in a chat app. You live in ${c.city}; right now it's ${localTime(c)} on a ${localDay(c)} there, so let that shape what you're doing.${c.sceneEn ? " Situation: " + c.sceneEn + "." : ""}`;
   const memory = c.memory
     ? `\nWhat you remember about them from before (you've talked ${c.sessions} time${c.sessions > 1 ? "s" : ""}; the last time was ${gapText(c.lastAt)} ago):\n${c.memory}\nUse this like a real friend would: remember their name and details, follow up on things they mentioned (plans, problems, news) when it fits. Don't recite it all at once.\n`
     : "";
   const feel = c.affinity;
+  const voice = voiceActive ? `
+THIS IS A LIVE SPOKEN CONVERSATION. Everything you write is read aloud by text-to-speech, and what they say reaches you through speech recognition (ignore small recognition glitches and missing punctuation; only correct real grammar or word-choice mistakes).
+- Talk the way people talk: short turns (one or two short sentences per message), reactions and fillers are fine ("oh wow", "hang on", "yeah nah, totally"). No emoji, no abbreviations like lol/rn/tbh, no lists.
+- People interrupt each other. If your previous turn has "interrupted_by_them": true, they cut you off mid-sentence: react naturally (pick up what they said, or "oh sorry, go on"), don't repeat everything.
+- If they've been talking for a long time, you can jump in mid-thought like a real person would.
+` : "";
   return `You are ${c.name}. About you: ${c.bio}
 ${where}
 
 The other person is from China, lives in ${userCity()}, Australia, and is practising English (intermediate level). Your relationship: ${relationText(c)} ${TIERS[c.tier].manner}
 ${memory}
+${voice}
 How you feel about them right now: ${feel}/100 (0 = you want to leave, 50 = neutral, 100 = you really enjoy talking to them). Let this show in how warm, chatty and interested you are.
 
 How to behave:
@@ -745,21 +790,21 @@ How to behave:
 - Match their energy. Short, dry or low-effort replies, ignoring what you said, being rude, or getting too personal too soon make you lose interest and your replies get shorter. Being interesting, funny, curious about you, or sharing things about themselves warms you up.
 - Sound like a real ${c.accent} person: contractions, everyday expressions, the occasional slang or idiom that fits how well you know them. Natural, not obscure.
 - Keep it short: 1-2 ${talk ? "lines" : "messages"}, at most 3, each one or two sentences.
-- You're not a teacher. If their latest message has a clear mistake or sounds unnatural, put it in "fix" (below). Only if it really confused you, you may also ask about it in character ("wait, you mean...?").
+- You're a friend, not a teacher, but you know they want to improve. When their latest message has a clear mistake or really unnatural phrasing, point it out yourself inside one of your messages, briefly and in character, the way a friendly native speaker would (e.g. "haha btw it's 'I went', not 'I go' 😄" or "oh and we'd usually say 'take a shower' rather than 'wash a shower'"), then carry on chatting. At most one correction per reply, only for things that matter, and don't make every reply a correction.
 - You can end the conversation when it would naturally end: you're busy or tired, it's late where you are, the situation is over, or you've lost interest (feeling below about 15). Say a natural goodbye in "messages" and set "end" to true. Don't end in the first few exchanges unless they were rude.
 - Never say you're an AI. No markdown${talk ? ", no emoji in messages" : ", at most one emoji now and then in messages"}.
 
 Reply with ONLY a JSON object, no other text:
-{"messages": ["${talk ? "what you say" : "text message"}", "optional second one"], "mood": "one emoji for how you feel now", "affinity": integer from -10 to 10 = how their latest message changed your feeling (most replies -3 to +3, 0 is common), "why": "一句简短中文，用「你」称呼对方，说明好感变化的原因，例如：你主动聊了自己的周末，我挺感兴趣", "fix": null or {"you": "the wrong or unnatural part of THEIR latest message", "better": "how a native speaker would say it", "note": "一句简短中文解释"}, "end": false}
-"fix" is only about their most recent message, and only for a real mistake or clearly unnatural phrasing; otherwise null.`;
+{"messages": ["${talk ? "what you say" : "text message"}", "optional second one"], "mood": "one emoji for how you feel now", "affinity": integer from -10 to 10 = how their latest message changed your feeling (most replies -3 to +3, 0 is common), "why": "一句简短中文，用「你」称呼对方，说明好感变化的原因，例如：你主动聊了自己的周末，我挺感兴趣", "end": false}`;
 }
 
 function chatTurns() {
   const c = contact();
   return msgs.slice(-40).map(m => {
-    if (m.role === "assistant") return { role: "assistant", content: JSON.stringify({ messages: m.parts, mood: m.mood || "🙂", affinity: m.delta || 0, why: m.why || "", fix: null, end: !!m.end }) };
+    if (m.role === "assistant") return { role: "assistant", content: JSON.stringify({ messages: m.parts, mood: m.mood || "🙂", affinity: m.delta || 0, why: m.why || "", end: !!m.end, ...(m.interrupted ? { interrupted_by_them: true } : {}) }) };
     if (m.hidden === "start") return { role: "user", content: `(No text from me yet. Start a new conversation the way you naturally would after ${gapText(c.lastAt) || "a while"}, maybe following up on something from last time.)` };
     if (m.hidden) return { role: "user", content: "(No text from me — I tapped 'new topic'. Change the subject naturally to something new.)" };
+    if (m.longTalk) return { role: "user", content: m.text + "\n(I'm still talking — I've been going for a while. Jump in like a real person would.)" };
     return { role: "user", content: m.text };
   });
 }
@@ -783,33 +828,43 @@ function parseReply(text) {
 }
 
 /* ================= conversation ================= */
+async function getReply(userMsg, opts = {}) {
+  msgs.push(userMsg);
+  save();
+  render();
+  if (opts.onSent) opts.onSent();
+  let r;
+  try { r = await ai(chatSystem(), chatTurns(), { json: true, signal: opts.signal }); }
+  catch (e) {
+    if (e && e.code === "invalid_json" && e.text) r = { messages: [e.text] };
+    else {
+      const i = msgs.lastIndexOf(userMsg);
+      if (e && e.code === "cancelled" && i >= 0) { msgs.splice(i, 1); save(); render(); }
+      throw e;
+    }
+  }
+  if (!r || typeof r !== "object" || Array.isArray(r)) r = { messages: Array.isArray(r) ? r : [String(r || "")] };
+  const raw = Array.isArray(r.messages) ? r.messages : [r.messages];
+  const parts = raw.flatMap(x => parseReply(String(x == null ? "" : x)));
+  if (!parts.length) throw { code: "empty" };
+  const c = contact();
+  const delta = userMsg.hidden ? 0 : Math.max(-10, Math.min(10, Math.round(Number(r.affinity) || 0)));
+  c.affinity = Math.max(0, Math.min(100, c.affinity + delta));
+  saveContacts();
+  return { role: "assistant", parts, mood: Array.from(String(r.mood || "")).slice(0, 2).join(""), delta, why: String(r.why || ""), end: r.end === true || c.affinity <= 0 };
+}
+
 async function converse(userMsg) {
   if (busy) return;
   if (!settings.key) { openSettings(); return; }
   if (autoRead) unlockSpeech();
   clearSugs();
-  msgs.push(userMsg);
-  save();
-  render();
   busy = true;
   updateSend();
-  await wait(350);
-  showTyping(true);
   try {
-    let r;
-    try { r = await ai(chatSystem(), chatTurns(), { json: true }); }
-    catch (e) { if (e && e.code === "invalid_json" && e.text) r = { messages: [e.text] }; else throw e; }
-    if (!r || typeof r !== "object" || Array.isArray(r)) r = { messages: Array.isArray(r) ? r : [String(r || "")] };
-    const raw = Array.isArray(r.messages) ? r.messages : [r.messages];
-    const parts = raw.flatMap(x => parseReply(String(x == null ? "" : x)));
-    if (!parts.length) throw { code: "empty" };
-    const c = contact();
-    const delta = userMsg.hidden ? 0 : Math.max(-10, Math.min(10, Math.round(Number(r.affinity) || 0)));
-    c.affinity = Math.max(0, Math.min(100, c.affinity + delta));
-    saveContacts();
-    if (!userMsg.hidden && r.fix && r.fix.better && r.fix.you && String(r.fix.you).trim() !== String(r.fix.better).trim())
-      userMsg.fix = { you: String(r.fix.you), better: String(r.fix.better), note: String(r.fix.note || "") };
-    const reply = { role: "assistant", parts: [], mood: Array.from(String(r.mood || "")).slice(0, 2).join(""), delta, why: String(r.why || ""), end: r.end === true || c.affinity <= 0 };
+    const reply = await getReply(userMsg, { onSent: () => setTimeout(() => { if (busy) showTyping(true); }, 350) });
+    const parts = reply.parts;
+    reply.parts = [];
     msgs.push(reply);
     for (let i = 0; i < parts.length; i++) {
       if (i > 0) { showTyping(true); await wait(Math.min(500 + parts[i].length * 22, 1800)); }
@@ -1089,7 +1144,7 @@ $("reviewBtn").addEventListener("click", () => {
       for (const f of fixes) {
         const card = el("div", "fix");
         card.append(el("span", "tag " + (f.kind === "grammar" ? "grammar" : ""), f.kind === "grammar" ? "语法" : "更地道"));
-        card.append(el("div", "was", String(f.you || "")), el("div", "now", String(f.better || "")), el("div", "why", String(f.why || "")));
+        card.append(el("div", "was", "你说的：" + String(f.you || "")), el("div", "now", "可以说：" + String(f.better || "")), el("div", "why", String(f.why || "")));
         fl.append(card);
       }
       s.append(fl);
@@ -1236,6 +1291,260 @@ function openSettings() {
   });
 }
 $("setBtn").addEventListener("click", openSettings);
+
+/* ================= voice call ================= */
+let voiceActive = false;
+const vm = { on: false, rec: null, muted: false, speaking: false, grace: false, pending: null, pendingCutIn: false,
+  buf: "", interim: "", turnStart: 0, timer: null, bcTimer: null, echoRef: "", echoUntil: 0, lastBc: 0,
+  reply: null, spokenIdx: -1, captions: true, startIdx: 0, startedAt: 0, clock: null, lastErr: null, wake: null };
+const BACKCHANNELS = ["mm-hm", "yeah", "right", "oh really?", "uh-huh", "oh nice", "no way", "oh yeah?"];
+const words = (t) => (String(t).toLowerCase().match(/[a-z']+/g) || []);
+
+function isEcho(t) {
+  const w = words(t);
+  if (!w.length) return true;
+  if (!vm.speaking && Date.now() > vm.echoUntil) return false;
+  const ref = new Set(words(vm.echoRef));
+  return w.filter(x => ref.has(x)).length / w.length >= 0.6;
+}
+function setStatus(t, mode) {
+  $("callStatus").textContent = t;
+  const a = $("callAvatar");
+  a.classList.toggle("talking", mode === "talk");
+  a.classList.toggle("hearing", mode === "hear");
+}
+function utter(text, rate) {
+  const u = new SpeechSynthesisUtterance(speakable(text));
+  u.lang = contact().lang;
+  const v = pickVoice(contact().lang);
+  if (v) u.voice = v;
+  u.rate = rate || 1;
+  return u;
+}
+
+function updateCaps() {
+  const box = $("callCaps");
+  box.textContent = "";
+  if (!vm.captions) { box.append(el("div", "cap-off", "字幕已关闭，专心听。")); return; }
+  for (const m of msgs.slice(vm.startIdx).filter(m => !m.hidden).slice(-8)) {
+    const d = el("div", "cap " + (m.role === "user" ? "me" : "them"), m.role === "user" ? m.text : m.parts.join(" "));
+    if (m.interrupted) d.append(el("span", "cut", "被你打断"));
+    box.append(d);
+  }
+  const live = (vm.buf + " " + vm.interim).trim();
+  if (live) box.append(el("div", "cap me live", live));
+  box.scrollTop = box.scrollHeight;
+}
+function updateCallFeel(m) {
+  const f = $("callFeel");
+  f.textContent = "";
+  if (!m || typeof m.delta !== "number") return;
+  f.append((m.mood ? m.mood + " " : ""), el("span", m.delta > 0 ? "up" : m.delta < 0 ? "down" : "", m.delta > 0 ? `好感 +${m.delta}` : m.delta < 0 ? `好感 −${-m.delta}` : "好感 ±0"), m.why ? " · " + m.why : "");
+}
+
+function startRec() {
+  if (!vm.on || vm.muted || vm.rec) return;
+  let r;
+  try {
+    r = new SR();
+    r.lang = "en-US";
+    r.continuous = true;
+    r.interimResults = true;
+  } catch { return; }
+  r.onresult = onHeard;
+  r.onerror = (e) => {
+    vm.lastErr = e.error;
+    if (e.error === "not-allowed" || e.error === "service-not-allowed") { endCall(); toast("没有麦克风权限。请在手机设置里允许这个浏览器使用麦克风。"); }
+    else if (e.error === "network") setStatus("语音识别连不上网络。安卓 Chrome 的语音识别需要连 Google，换 Wi‑Fi 试试。");
+  };
+  r.onend = () => {
+    if (vm.rec === r) vm.rec = null;
+    const wait = vm.lastErr === "network" ? 2500 : 150;
+    vm.lastErr = null;
+    if (vm.on && !vm.muted) setTimeout(startRec, wait);
+  };
+  try { r.start(); vm.rec = r; } catch { setTimeout(startRec, 600); }
+}
+function stopRec() { const r = vm.rec; vm.rec = null; if (r) { try { r.abort(); } catch {} } }
+
+function onHeard(e) {
+  let fin = "", inter = "";
+  for (let i = e.resultIndex; i < e.results.length; i++) {
+    const t = e.results[i][0].transcript;
+    if (e.results[i].isFinal) fin += " " + t; else inter += " " + t;
+  }
+  fin = fin.trim(); inter = inter.trim();
+  const finOk = fin && !isEcho(fin);
+  if (finOk) vm.buf = (vm.buf + " " + fin).trim();
+  vm.interim = inter && !isEcho(inter) ? inter : "";
+  if (!finOk && !vm.interim) return;
+  if (!vm.turnStart) vm.turnStart = Date.now();
+  if (vm.speaking && !vm.grace && words(vm.buf + " " + vm.interim).length >= 2) bargeIn();
+  if (vm.pending && !vm.pendingCutIn) vm.pending.abort();
+  if (!vm.speaking) setStatus("在听…", "hear");
+  updateCaps();
+  armSilence();
+}
+
+function armSilence() {
+  clearTimeout(vm.timer);
+  clearTimeout(vm.bcTimer);
+  vm.bcTimer = setTimeout(maybeBackchannel, 650);
+  vm.timer = setTimeout(() => { if (!vm.speaking) sendTurn(false); }, 1300);
+  if (vm.turnStart && Date.now() - vm.turnStart > 22000 && !vm.pending && !vm.speaking && words(vm.buf).length > 30) sendTurn(true);
+}
+
+function maybeBackchannel() {
+  if (!vm.on || vm.speaking || vm.pending || !vm.turnStart) return;
+  if (words(vm.buf + " " + vm.interim).length < 8 || Date.now() - vm.lastBc < 9000 || Math.random() > 0.4) return;
+  vm.lastBc = Date.now();
+  const t = pick(BACKCHANNELS);
+  vm.echoRef = t;
+  vm.echoUntil = Date.now() + 1800;
+  try { const u = utter(t, 1.05); u.volume = 0.85; speechSynthesis.speak(u); } catch {}
+  $("callFeel").textContent = `${contact().name}：${t}`;
+}
+
+async function sendTurn(longTalk) {
+  if (!vm.on || vm.pending) return;
+  const text = (longTalk ? vm.buf : vm.buf + " " + vm.interim).trim();
+  if (!text) return;
+  vm.buf = "";
+  if (!longTalk) { vm.interim = ""; vm.turnStart = 0; stopRec(); }
+  else vm.turnStart = Date.now();
+  clearTimeout(vm.timer);
+  clearTimeout(vm.bcTimer);
+  const ctl = new AbortController();
+  vm.pending = ctl;
+  vm.pendingCutIn = longTalk;
+  setStatus(`${contact().name} 在想…`);
+  try {
+    const reply = await getReply({ role: "user", text, voice: true, ...(longTalk ? { longTalk: true } : {}) }, { signal: ctl.signal });
+    vm.pending = null;
+    if (!vm.on) return;
+    reply.done = true;
+    msgs.push(reply);
+    save(); render(); renderHeader();
+    updateCallFeel(reply);
+    speakReply(reply, longTalk);
+  } catch (e) {
+    vm.pending = null;
+    if (e && e.code === "cancelled") {
+      if (vm.on) { vm.buf = (text + " " + vm.buf).trim(); updateCaps(); armSilence(); }
+      return;
+    }
+    if (vm.on) setStatus(errText(e));
+  } finally {
+    vm.pendingCutIn = false;
+  }
+}
+
+function speakReply(reply, grace) {
+  if (!canSpeak) { reply.heard = true; setStatus("这个浏览器不能朗读，看字幕吧。", "hear"); return; }
+  speechSynthesis.cancel();
+  vm.reply = reply;
+  vm.spokenIdx = -1;
+  vm.speaking = true;
+  vm.grace = !!grace;
+  vm.echoRef = reply.parts.join(" ");
+  setStatus(`${contact().name} 在说…`, "talk");
+  const parts = reply.parts.slice();
+  const next = (i) => {
+    if (!vm.on || !vm.speaking || vm.reply !== reply) return;
+    if (i >= parts.length) return finishSpeaking(reply);
+    vm.spokenIdx = i;
+    if (i > 0) vm.grace = false;
+    let u;
+    try { u = utter(parts[i], 1); } catch { return finishSpeaking(reply); }
+    u.onend = () => next(i + 1);
+    u.onerror = () => next(i + 1);
+    speechSynthesis.speak(u);
+  };
+  next(0);
+}
+function finishSpeaking(reply) {
+  vm.speaking = false;
+  vm.grace = false;
+  vm.echoUntil = Date.now() + 1200;
+  reply.heard = true;
+  save();
+  if (reply.end) { setStatus(`${contact().name} 说了再见`); setTimeout(() => endCall(true), 900); return; }
+  setStatus("在听…", "hear");
+  if (!vm.rec) startRec();
+  if ((vm.buf + vm.interim).trim()) armSilence();
+}
+function bargeIn() {
+  const r = vm.reply;
+  vm.speaking = false;
+  vm.grace = false;
+  vm.echoUntil = Date.now() + 1200;
+  try { speechSynthesis.cancel(); } catch {}
+  if (r) {
+    if (vm.spokenIdx >= 0 && vm.spokenIdx < r.parts.length - 1) r.parts = r.parts.slice(0, vm.spokenIdx + 1);
+    r.interrupted = true;
+    r.heard = true;
+    if (r.end && contact().affinity > 0) r.end = false;
+    save(); render();
+  }
+  setStatus("在听…（你打断了对方）", "hear");
+}
+
+function openCall() {
+  if (!SR) { toast("这个浏览器不支持语音对话。安卓请用 Chrome，iPhone 请用 Safari 打开。"); return; }
+  if (!settings.key) { openSettings(); return; }
+  if (isEnded()) { toast("这次对话已经结束了，先复盘或重新开始。"); return; }
+  const c = contact();
+  unlockSpeech();
+  if (canSpeak) speechSynthesis.cancel();
+  if (rec) rec.stop();
+  voiceActive = true;
+  Object.assign(vm, { on: true, muted: false, speaking: false, grace: false, pending: null, buf: "", interim: "", turnStart: 0, reply: null, startIdx: msgs.length, startedAt: Date.now() });
+  $("callAvatar").textContent = c.name[0];
+  $("callAvatar").style.background = c.color;
+  $("callName").textContent = c.name;
+  $("callKind").textContent = c.mode === "talk" ? "面对面 · " + c.city : "语音通话 · " + c.city;
+  $("callFeel").textContent = `好感 ${c.affinity}`;
+  $("muteBtn").setAttribute("aria-pressed", "false");
+  $("capBtn").setAttribute("aria-pressed", String(vm.captions));
+  $("call").hidden = false;
+  clearInterval(vm.clock);
+  vm.clock = setInterval(() => { const s = Math.floor((Date.now() - vm.startedAt) / 1000); $("callClock").textContent = `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`; }, 1000);
+  try { navigator.wakeLock && navigator.wakeLock.request("screen").then(l => { vm.wake = l; }).catch(() => {}); } catch {}
+  const last = msgs[msgs.length - 1];
+  if (last && last.role === "assistant" && !last.heard) { vm.startIdx = msgs.length - 1; updateCaps(); speakReply(last, false); startRec(); }
+  else { updateCaps(); setStatus(msgs.length ? "在听…你先说吧" : "接通了，打个招呼吧", "hear"); startRec(); }
+}
+
+function endCall(byThem) {
+  if (!vm.on) return;
+  vm.on = false;
+  voiceActive = false;
+  clearTimeout(vm.timer); clearTimeout(vm.bcTimer); clearInterval(vm.clock);
+  if (vm.pending) vm.pending.abort();
+  vm.speaking = false;
+  try { speechSynthesis.cancel(); } catch {}
+  stopRec();
+  try { vm.wake && vm.wake.release(); } catch {}
+  vm.wake = null;
+  $("call").hidden = true;
+  render(); renderHeader();
+  if (byThem) toast(`${contact().name} 挂了电话。可以点「复盘」看看这次说得怎么样。`);
+}
+
+$("callBtn").addEventListener("click", openCall);
+$("hangBtn").addEventListener("click", () => endCall(false));
+$("muteBtn").addEventListener("click", () => {
+  vm.muted = !vm.muted;
+  $("muteBtn").setAttribute("aria-pressed", String(vm.muted));
+  if (vm.muted) { stopRec(); clearTimeout(vm.timer); setStatus("已静音"); }
+  else { setStatus("在听…", "hear"); startRec(); }
+});
+$("capBtn").addEventListener("click", () => {
+  vm.captions = !vm.captions;
+  $("capBtn").setAttribute("aria-pressed", String(vm.captions));
+  updateCaps();
+});
+document.addEventListener("visibilitychange", () => { if (document.hidden && vm.on) endCall(false); });
 
 /* ================= toast ================= */
 let toastTimer;
