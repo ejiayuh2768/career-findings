@@ -51,7 +51,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
 button:focus-visible, textarea:focus-visible, input:focus-visible, select:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 a { color: var(--me); }
 
-.app { height: 100%; height: 100dvh; display: grid; grid-template-rows: auto 1fr auto; max-width: 720px; margin: 0 auto; }
+.app { height: 100%; height: 100dvh; display: grid; grid-template-rows: auto 1fr auto; grid-template-columns: minmax(0, 1fr); max-width: 720px; margin: 0 auto; }
 
 /* Header */
 .top { display: flex; align-items: center; gap: 10px; padding-top: calc(10px + env(safe-area-inset-top, 0px)); padding-bottom: 10px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); border-bottom: 1px solid var(--line); background: var(--bg); }
@@ -152,6 +152,14 @@ a { color: var(--me); }
 .status { font-size: 14px; }
 .status.ok { color: var(--good); } .status.bad { color: var(--bad); }
 
+.feel { font-size: 12px; color: var(--muted); display: flex; gap: 6px; align-items: baseline; flex-wrap: wrap; margin-top: 2px; line-height: 1.4; }
+.feel .d { font-weight: 700; font-variant-numeric: tabular-nums; }
+.feel .d.up { color: var(--good); } .feel .d.down { color: var(--bad); }
+.fixnote { font-size: 13px; line-height: 1.45; background: var(--accent-soft); color: var(--ink); border-radius: 10px; padding: 6px 10px; text-align: left; }
+.fixnote s { color: var(--muted); text-decoration-color: var(--bad); }
+.fixnote b { color: var(--good); font-weight: 600; }
+.fixnote span { color: var(--muted); }
+.composer textarea:disabled { opacity: .6; }
 .toast { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(130px + env(safe-area-inset-bottom, 0px)); background: var(--ink); color: var(--bg); padding: 10px 14px; border-radius: 12px; font-size: 14px; line-height: 1.45; width: min(92vw, 420px); z-index: 20; }
 </style>
 </head>
@@ -222,6 +230,24 @@ const BUILTIN = {
       ["Oi, long time no chat!", "Had a gig last night, went better than expected tbh. What've you been up to?"]
     ]
   },
+  liam: {
+    name: "Liam", city: "Geelong", tz: "Australia/Melbourne", lang: "en-AU", color: "#C05621", accent: "Australian (Victoria)",
+    blurb: "31 岁，吉朗的电工，铁杆 AFL 球迷，周末钓鱼烧烤，话不多但很实在",
+    bio: "You're 31 and work as a sparky (electrician) in Geelong, an hour from Melbourne. You barrack for the Geelong Cats in the AFL, go fishing and have mates over for a barbie on weekends. You're laid-back and a bit dry, not a big texter, and use plenty of Aussie slang ('mate', 'arvo', 'reckon', 'heaps', 'no wukkas', 'servo', 'keen').",
+    openers: [
+      ["Oi mate", "Cats got flogged on the weekend, still not over it. How ya going?"],
+      ["G'day", "Just knocked off work. What you been up to?"]
+    ]
+  },
+  chloe: {
+    name: "Chloe", city: "Brisbane", tz: "Australia/Brisbane", lang: "en-AU", color: "#2C7A7B", accent: "Australian (Queensland)",
+    blurb: "22 岁，布里斯班大学生，学环境科学，咖啡店兼职，爱冲浪和追真人秀",
+    bio: "You're 22, study environmental science at uni in Brisbane and work part-time at a café. You love surfing at the Gold Coast, binge-watching reality TV, and complaining about assignments and the humidity. You're bubbly and a bit dramatic, and text in lowercase with 'omg', 'literally' and Aussie slang.",
+    openers: [
+      ["omg hiii", "i have an assignment due tomorrow and i've literally done nothing lol"],
+      ["heyy", "it's sooo humid here today i'm melting. how's melbs?"]
+    ]
+  },
   jess: {
     name: "Jess", city: "Melbourne", tz: "Australia/Melbourne", lang: "en-AU", color: "#B0478A", accent: "Australian",
     blurb: "25 岁，墨尔本护士，爱海边和早午餐，在计划去日本旅行",
@@ -235,15 +261,28 @@ const BUILTIN = {
 };
 
 const COUNTRIES = [
-  { accent: "American", lang: "en-US", places: [["New York", "America/New_York"], ["Chicago", "America/Chicago"], ["Los Angeles", "America/Los_Angeles"], ["Austin", "America/Chicago"], ["Seattle", "America/Los_Angeles"]] },
-  { accent: "British", lang: "en-GB", places: [["London", "Europe/London"], ["Manchester", "Europe/London"], ["Edinburgh", "Europe/London"]] },
-  { accent: "Australian", lang: "en-AU", places: [["Melbourne", "Australia/Melbourne"], ["Sydney", "Australia/Sydney"], ["Brisbane", "Australia/Brisbane"]] },
-  { accent: "Canadian", lang: "en-CA", places: [["Toronto", "America/Toronto"], ["Vancouver", "America/Vancouver"]] },
-  { accent: "Irish", lang: "en-IE", places: [["Dublin", "Europe/Dublin"]] }
+  { code: "AU", weight: 55, accent: "Australian", lang: "en-AU", places: [["Melbourne", "Australia/Melbourne"], ["Sydney", "Australia/Sydney"], ["Brisbane", "Australia/Brisbane"], ["Perth", "Australia/Perth"], ["Adelaide", "Australia/Adelaide"], ["Gold Coast", "Australia/Brisbane"], ["Hobart", "Australia/Hobart"]] },
+  { code: "US", weight: 15, accent: "American", lang: "en-US", places: [["New York", "America/New_York"], ["Chicago", "America/Chicago"], ["Los Angeles", "America/Los_Angeles"], ["Austin", "America/Chicago"], ["Seattle", "America/Los_Angeles"]] },
+  { code: "GB", weight: 12, accent: "British", lang: "en-GB", places: [["London", "Europe/London"], ["Manchester", "Europe/London"], ["Edinburgh", "Europe/London"]] },
+  { code: "CA", weight: 7, accent: "Canadian", lang: "en-CA", places: [["Toronto", "America/Toronto"], ["Vancouver", "America/Vancouver"]] },
+  { code: "NZ", weight: 6, accent: "New Zealand (Kiwi)", lang: "en-NZ", places: [["Auckland", "Pacific/Auckland"], ["Wellington", "Pacific/Auckland"]] },
+  { code: "IE", weight: 5, accent: "Irish", lang: "en-IE", places: [["Dublin", "Europe/Dublin"]] }
 ];
+function pickCountry() {
+  let r = Math.random() * COUNTRIES.reduce((t, c) => t + c.weight, 0);
+  for (const c of COUNTRIES) if ((r -= c.weight) < 0) return c;
+  return COUNTRIES[0];
+}
 
 const TIERS = {
   stranger: {
+    start: 30,
+    online: [
+      "you matched with them on a language exchange app (like HelloTalk) and this is your first chat",
+      "you both commented on the same Reddit post about travelling in Australia and moved to DMs",
+      "you got randomly teamed up in an online game and started chatting in the game chat",
+      "you met in a Discord server for a TV show you both love and started DMing"
+    ],
     label: "刚认识", hint: "飞机邻座、排队、派对……从打招呼开始",
     relation: "a complete stranger; you've never met before this moment",
     manner: "You've never met: you know nothing about them yet. Start with light small talk tied to the situation, be friendly but don't overshare too early; open up a little if it goes well. If the situation would naturally end (your coffee's ready, your stop is coming), you may wrap up with a natural goodbye, maybe suggest swapping numbers if you got on well.",
@@ -263,6 +302,12 @@ const TIERS = {
     ]
   },
   mid: {
+    start: 50,
+    online: [
+      "you met them while they were travelling and swapped Instagram; you message now and then",
+      "a former classmate from an online course you both took, you chat occasionally",
+      "a friend-of-a-friend who lives overseas; you've chatted online a few times"
+    ],
     label: "半熟", hint: "同事、邻居、朋友的朋友，友好但还有点客气",
     relation: "someone they know a little but not well; friendly but still a bit polite",
     manner: "You know each other a bit: friendly and warm but still slightly polite. Mostly lighter topics; get a little more personal if it goes well.",
@@ -276,6 +321,12 @@ const TIERS = {
     ]
   },
   close: {
+    start: 75,
+    online: [
+      "an old friend who moved overseas; you keep in touch by text",
+      "a close friend from their exchange semester, now living in different countries",
+      "an online friend you've been texting almost every week for years"
+    ],
     label: "很熟", hint: "认识多年的好朋友，随便聊、互相吐槽",
     relation: "a close friend; you're comfortable teasing each other and can talk about anything",
     manner: "You're close: relaxed, teasing, inside jokes, share real feelings and opinions.",
@@ -290,6 +341,7 @@ const TIERS = {
   }
 };
 const NEXT_TIER = { stranger: "mid", mid: "close", close: "close" };
+const PROMOTE_AT = { stranger: 45, mid: 65 };
 const AVATAR_COLORS = ["#D2603A", "#2E7D6B", "#B0478A", "#6A5ACD", "#B7791F", "#2B6CB0", "#9C4221", "#4A7C2A"];
 
 const PROVIDERS = {
@@ -313,14 +365,13 @@ const store = {
 
 /* ================= state ================= */
 let settings = store.get("settings", { provider: "gemini", key: "", model: "", base: "" });
-let contacts = store.get("contacts", null);
-if (!contacts) {
-  contacts = {};
-  for (const [id, b] of Object.entries(BUILTIN)) {
-    contacts[id] = { id, builtin: true, name: b.name, city: b.city, tz: b.tz, lang: b.lang, color: b.color, accent: b.accent, blurb: b.blurb, bio: b.bio,
-      tier: "close", mode: "text", relationNote: "You met online a while ago and genuinely enjoy chatting.", memory: "", sessions: 0, lastAt: 0 };
-  }
+let contacts = store.get("contacts", null) || {};
+for (const [id, b] of Object.entries(BUILTIN)) {
+  if (!contacts[id]) contacts[id] = { id, builtin: true, name: b.name, city: b.city, tz: b.tz, lang: b.lang, color: b.color, accent: b.accent, blurb: b.blurb, bio: b.bio,
+    tier: "close", mode: "text", relationNote: b.tz.startsWith("Australia") ? "You met through mutual friends and mostly keep in touch by text." : "You met online a while ago and genuinely enjoy chatting.", memory: "", sessions: 0, lastAt: 0, affinity: 70 };
 }
+for (const c of Object.values(contacts)) if (typeof c.affinity !== "number") c.affinity = c.builtin ? 70 : TIERS[c.tier].start;
+const userCity = () => (settings.city || "Melbourne").trim();
 let cid = store.get("current", "maya");
 if (!contacts[cid]) cid = Object.keys(contacts)[0];
 let msgs = [];
@@ -361,7 +412,7 @@ function loadConvo() {
 }
 
 function headerMeta(c) {
-  const lvl = TIERS[c.tier].label;
+  const lvl = `${TIERS[c.tier].label} · ♥ ${c.affinity}`;
   return c.mode === "talk" ? `${lvl} · 面对面 · ${c.city}` : `${lvl} · ${c.city} · ${localTime(c)}`;
 }
 function renderHeader() {
@@ -426,9 +477,45 @@ function render() {
     }
     const parts = m.role === "user" ? [m.text] : m.parts;
     for (const t of parts) group.append(bubble(t, m.role));
+    if (m.role === "user" && m.fix) group.append(fixNote(m.fix, c.name));
+    if (m.role === "assistant" && m.done && typeof m.delta === "number") group.append(feelChip(m));
   }
+  const ended = isEnded();
+  if (ended) {
+    const card = el("div", "card");
+    card.append(el("span", "k", "对话结束"));
+    card.append(el("div", null, c.affinity <= 15
+      ? `${c.name} 不太想聊了，结束了这次对话。复盘看看哪里可以聊得更好。`
+      : `${c.name} 结束了这次聊天。复盘一下，TA 会记住这次聊的内容。`));
+    const row = el("div", "row");
+    const rv = el("button", "primary", "复盘");
+    rv.addEventListener("click", () => $("reviewBtn").click());
+    const again = el("button", "chip", "不复盘，重新开始");
+    again.addEventListener("click", () => { store.set("chat." + cid, null); loadConvo(); render(); });
+    row.append(rv, again);
+    card.append(row);
+    thread.append(card);
+  }
+  input.disabled = ended;
+  input.placeholder = ended ? "对话已结束" : (SR ? "Type or tap the mic…" : "Type in English… (or use your keyboard's mic)");
+  ["hintBtn", "topicBtn"].forEach(id => { $(id).disabled = ended; });
   if (typingEl) thread.append(typingEl);
   scrollDown();
+}
+function isEnded() { const l = msgs[msgs.length - 1]; return !!(l && l.role === "assistant" && l.end && l.done); }
+function feelChip(m) {
+  const f = el("div", "feel");
+  if (m.mood) f.append(el("span", null, m.mood));
+  const d = el("span", "d " + (m.delta > 0 ? "up" : m.delta < 0 ? "down" : ""), m.delta > 0 ? `好感 +${m.delta}` : m.delta < 0 ? `好感 −${-m.delta}` : "好感 ±0");
+  f.append(d);
+  if (m.why) f.append(el("span", null, m.why));
+  return f;
+}
+function fixNote(fx, name) {
+  const n = el("div", "fixnote");
+  n.append(el("span", null, `${name} 提醒：`), el("s", null, fx.you), " → ", el("b", null, fx.better));
+  if (fx.note) n.append(el("span", null, `（${fx.note}）`));
+  return n;
 }
 function gapTextZh(ts) {
   const h = (Date.now() - ts) / 36e5;
@@ -491,8 +578,7 @@ function speak(text, elx, interrupt, rate) {
 const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
 const micBtn = $("micBtn");
 let rec = null;
-if (SR) { micBtn.hidden = false; input.placeholder = "Type or tap the mic…"; }
-else input.placeholder = "Type in English… (or use your keyboard's mic)";
+if (SR) micBtn.hidden = false;
 micBtn.addEventListener("click", () => {
   if (rec) { rec.stop(); return; }
   try {
@@ -609,7 +695,7 @@ function parseJSON(text) {
   if (fence && (v = tryParse(fence[1])) !== undefined) return v;
   const a = text.search(/[\[{]/), b = Math.max(text.lastIndexOf("}"), text.lastIndexOf("]"));
   if (a >= 0 && b > a && (v = tryParse(text.slice(a, b + 1))) !== undefined) return v;
-  throw { code: "invalid_json" };
+  throw { code: "invalid_json", text };
 }
 
 function errText(e) {
@@ -646,25 +732,32 @@ function chatSystem() {
   const memory = c.memory
     ? `\nWhat you remember about them from before (you've talked ${c.sessions} time${c.sessions > 1 ? "s" : ""}; the last time was ${gapText(c.lastAt)} ago):\n${c.memory}\nUse this like a real friend would: remember their name and details, follow up on things they mentioned (plans, problems, news) when it fits. Don't recite it all at once.\n`
     : "";
+  const feel = c.affinity;
   return `You are ${c.name}. About you: ${c.bio}
 ${where}
 
-The other person is from China and is practising English (intermediate level). Your relationship: ${relationText(c)} ${TIERS[c.tier].manner}
+The other person is from China, lives in ${userCity()}, Australia, and is practising English (intermediate level). Your relationship: ${relationText(c)} ${TIERS[c.tier].manner}
 ${memory}
-How to write:
+How you feel about them right now: ${feel}/100 (0 = you want to leave, 50 = neutral, 100 = you really enjoy talking to them). Let this show in how warm, chatty and interested you are.
+
+How to behave:
+- You're a real person with your own life, mood and things going on, not a host or interviewer. Don't chase them with questions: ask something only now and then (roughly one reply in three), never more than one question per reply. Often you just react, share something, joke or give your opinion.
+- Match their energy. Short, dry or low-effort replies, ignoring what you said, being rude, or getting too personal too soon make you lose interest and your replies get shorter. Being interesting, funny, curious about you, or sharing things about themselves warms you up.
 - Sound like a real ${c.accent} person: contractions, everyday expressions, the occasional slang or idiom that fits how well you know them. Natural, not obscure.
-- Keep it short. Usually 1-2 ${talk ? "lines" : "messages"}, at most 3, each one or two sentences. Put a line containing only // between separate ${talk ? "lines" : "messages"}.
-- React to what they actually said, share small details from your own life, and usually give them something easy to respond to.
-- Keep the conversation going. When a topic runs dry, move on naturally to something new that fits the situation and your relationship.
-- Never correct their English, never explain words or grammar, never sound like a teacher or assistant. If you don't understand, ask like a real person would.
-- Never say you're an AI. No markdown, no lists${talk ? ", no emoji" : ", at most one emoji now and then"}.
-- Reply with your ${talk ? "spoken lines" : "messages"} only.`;
+- Keep it short: 1-2 ${talk ? "lines" : "messages"}, at most 3, each one or two sentences.
+- You're not a teacher. If their latest message has a clear mistake or sounds unnatural, put it in "fix" (below). Only if it really confused you, you may also ask about it in character ("wait, you mean...?").
+- You can end the conversation when it would naturally end: you're busy or tired, it's late where you are, the situation is over, or you've lost interest (feeling below about 15). Say a natural goodbye in "messages" and set "end" to true. Don't end in the first few exchanges unless they were rude.
+- Never say you're an AI. No markdown${talk ? ", no emoji in messages" : ", at most one emoji now and then in messages"}.
+
+Reply with ONLY a JSON object, no other text:
+{"messages": ["${talk ? "what you say" : "text message"}", "optional second one"], "mood": "one emoji for how you feel now", "affinity": integer from -10 to 10 = how their latest message changed your feeling (most replies -3 to +3, 0 is common), "why": "一句简短中文，用「你」称呼对方，说明好感变化的原因，例如：你主动聊了自己的周末，我挺感兴趣", "fix": null or {"you": "the wrong or unnatural part of THEIR latest message", "better": "how a native speaker would say it", "note": "一句简短中文解释"}, "end": false}
+"fix" is only about their most recent message, and only for a real mistake or clearly unnatural phrasing; otherwise null.`;
 }
 
 function chatTurns() {
   const c = contact();
   return msgs.slice(-40).map(m => {
-    if (m.role === "assistant") return { role: "assistant", content: m.parts.join("\n//\n") };
+    if (m.role === "assistant") return { role: "assistant", content: JSON.stringify({ messages: m.parts, mood: m.mood || "🙂", affinity: m.delta || 0, why: m.why || "", fix: null, end: !!m.end }) };
     if (m.hidden === "start") return { role: "user", content: `(No text from me yet. Start a new conversation the way you naturally would after ${gapText(c.lastAt) || "a while"}, maybe following up on something from last time.)` };
     if (m.hidden) return { role: "user", content: "(No text from me — I tapped 'new topic'. Change the subject naturally to something new.)" };
     return { role: "user", content: m.text };
@@ -703,9 +796,20 @@ async function converse(userMsg) {
   await wait(350);
   showTyping(true);
   try {
-    const text = await ai(chatSystem(), chatTurns());
-    const parts = parseReply(text);
-    const reply = { role: "assistant", parts: [] };
+    let r;
+    try { r = await ai(chatSystem(), chatTurns(), { json: true }); }
+    catch (e) { if (e && e.code === "invalid_json" && e.text) r = { messages: [e.text] }; else throw e; }
+    if (!r || typeof r !== "object" || Array.isArray(r)) r = { messages: Array.isArray(r) ? r : [String(r || "")] };
+    const raw = Array.isArray(r.messages) ? r.messages : [r.messages];
+    const parts = raw.flatMap(x => parseReply(String(x == null ? "" : x)));
+    if (!parts.length) throw { code: "empty" };
+    const c = contact();
+    const delta = userMsg.hidden ? 0 : Math.max(-10, Math.min(10, Math.round(Number(r.affinity) || 0)));
+    c.affinity = Math.max(0, Math.min(100, c.affinity + delta));
+    saveContacts();
+    if (!userMsg.hidden && r.fix && r.fix.better && r.fix.you && String(r.fix.you).trim() !== String(r.fix.better).trim())
+      userMsg.fix = { you: String(r.fix.you), better: String(r.fix.better), note: String(r.fix.note || "") };
+    const reply = { role: "assistant", parts: [], mood: Array.from(String(r.mood || "")).slice(0, 2).join(""), delta, why: String(r.why || ""), end: r.end === true || c.affinity <= 0 };
     msgs.push(reply);
     for (let i = 0; i < parts.length; i++) {
       if (i > 0) { showTyping(true); await wait(Math.min(500 + parts[i].length * 22, 1800)); }
@@ -714,7 +818,9 @@ async function converse(userMsg) {
       render();
       if (autoRead) { const bs = thread.querySelectorAll(".group.them .bubble"); speak(parts[i], bs[bs.length - 1]); }
     }
-    if (!reply.parts.length) msgs.pop();
+    reply.done = true;
+    render();
+    renderHeader();
     save();
   } catch (e) {
     showTyping(false);
@@ -731,7 +837,7 @@ function autosize() {
   input.style.height = Math.min(input.scrollHeight, 120) + "px";
   updateSend();
 }
-function updateSend() { sendBtn.disabled = busy || !input.value.trim(); }
+function updateSend() { sendBtn.disabled = busy || isEnded() || !input.value.trim(); }
 input.addEventListener("input", autosize);
 input.addEventListener("keydown", (e) => {
   if (e.key === "Enter" && !e.shiftKey && !e.isComposing && window.matchMedia("(hover: hover)").matches) {
@@ -835,9 +941,16 @@ function personaCard(c) {
 async function meetSomeone(tierKey, s, buttons) {
   if (!settings.key) { openSettings(); return; }
   const tier = TIERS[tierKey];
-  const [mode, setting] = pick(tier.settings);
-  const country = pick(COUNTRIES);
-  const [city, tz] = pick(country.places);
+  const country = pickCountry();
+  const local = country.code === "AU";
+  let mode, setting;
+  if (local) [mode, setting] = pick(tier.settings);
+  else { mode = "text"; setting = pick(tier.online); }
+  let [city, tz] = pick(country.places);
+  if (local && mode === "talk") {
+    const here = country.places.find(pl => userCity().toLowerCase().includes(pl[0].toLowerCase()));
+    [city, tz] = here || [userCity(), "Australia/Melbourne"];
+  }
   const youStart = tierKey === "stranger" ? Math.random() < 0.5 : tierKey === "mid" && Math.random() < 0.3;
   buttons.forEach(b => (b.disabled = true));
   const loading = el("p", "loading", "正在安排一次相遇…");
@@ -846,8 +959,9 @@ async function meetSomeone(tierKey, s, buttons) {
   sheetCtl = new AbortController();
   try {
     const r = await ai("You create realistic characters for an English conversation-practice app. Reply with JSON only.", [{ role: "user", content:
-      `Invent a realistic, ordinary native English speaker. They are ${country.accent}, living in or visiting ${city}. ` +
-      `Relationship to the learner (a Chinese person practising English): ${tier.relation}. Situation: this person is ${setting}. ` +
+      `Invent a realistic, ordinary native English speaker. They are ${country.accent} and live in ${city}. ` +
+      `The learner is a Chinese person living in ${userCity()}, Australia, practising English. Relationship: ${tier.relation}. ` +
+      `Situation: this person is ${setting}. ${mode === "talk" ? "You are face to face." : "You are chatting online by text" + (local ? "." : `; you're in different countries.`)} ` +
       `Vary age (20-65), gender, job and personality; avoid clichés.\n` +
       `Reply with only JSON: {"name": "first name", "bio": "2-3 sentences in second person ('You're 34, ...'): age, job, life details and how you talk", ` +
       `"blurb": "一句中文介绍（年龄、职业、性格）", "sceneEn": "one sentence describing the situation from this person's side, including what you both already know about each other", ` +
@@ -861,7 +975,7 @@ async function meetSomeone(tierKey, s, buttons) {
       originEn: String(r.sceneEn || setting), originZh: String(r.sceneZh || ""),
       opener: youStart ? [] : (Array.isArray(r.opener) ? r.opener.map(String).filter(Boolean).slice(0, 2) : []),
       city, tz, lang: country.lang, accent: country.accent, color: pick(AVATAR_COLORS),
-      tier: tierKey, mode, memory: "", sessions: 0, lastAt: 0, createdAt: Date.now()
+      tier: tierKey, mode, memory: "", sessions: 0, lastAt: 0, createdAt: Date.now(), affinity: tier.start
     };
     saveContacts();
     sheetCtl = null;
@@ -906,7 +1020,7 @@ function openWho() {
     forget.addEventListener("click", () => {
       if (!armed) { armed = true; forget.classList.add("armed"); forget.textContent = "再点一次确认"; return; }
       store.set("chat." + c.id, null);
-      if (c.builtin) { Object.assign(c, { memory: "", sessions: 0, lastAt: 0, tier: "close" }); saveContacts(); switchTo(c.id); }
+      if (c.builtin) { Object.assign(c, { memory: "", sessions: 0, lastAt: 0, tier: "close", affinity: 70 }); saveContacts(); switchTo(c.id); }
       else { delete contacts[c.id]; saveContacts(); switchTo(Object.keys(contacts)[0]); }
     });
     s.append(forget);
@@ -916,24 +1030,31 @@ $("whoBtn").addEventListener("click", openWho);
 $("meetBtn").addEventListener("click", openWho);
 
 /* ================= review + memory ================= */
+function canPromote(c) { return c.tier !== "close" && c.affinity >= PROMOTE_AT[c.tier]; }
+
 function endSession(memory) {
   const c = contact();
-  const before = c.tier;
+  const up = canPromote(c);
   c.memory = String(memory || c.memory || "").trim();
   c.sessions = (c.sessions || 0) + 1;
   c.lastAt = Date.now();
-  c.tier = NEXT_TIER[c.tier];
-  if (c.mode === "talk" && !c.builtin) {
-    c.mode = "text";
-    c.sceneEn = "Since you first met, you've swapped numbers and now text each other.";
-    c.sceneZh = `你们最初是这样认识的：${c.originZh || ""} 后来交换了联系方式，现在用手机发消息。`;
-  } else if (!c.builtin && c.originZh) {
-    c.sceneZh = `你们最初是这样认识的：${c.originZh}`;
+  if (up) c.tier = NEXT_TIER[c.tier];
+  if (!c.builtin) {
+    if (c.mode === "talk" && up) {
+      c.mode = "text";
+      c.sceneEn = "Since you first met, you've swapped numbers and now text each other.";
+      c.sceneZh = `你们最初是这样认识的：${c.originZh || ""} 后来交换了联系方式，现在用手机发消息。`;
+    } else if (c.mode === "talk") {
+      c.sceneEn = `You run into each other again, somewhere similar to where you first met (${c.originEn}).`;
+      c.sceneZh = `你们又碰到了。上次是这样认识的：${c.originZh || ""}`;
+    } else if (c.originZh) {
+      c.sceneZh = `你们最初是这样认识的：${c.originZh}`;
+    }
   }
   saveContacts();
   store.set("chat." + c.id, null);
   loadConvo(); renderHeader(); render(); closeSheet();
-  toast(before !== c.tier ? `${c.name} 记住你了，你们的关系变成了「${TIERS[c.tier].label}」。` : `${c.name} 记住了这次聊的内容，下次接着聊。`);
+  toast(up ? `${c.name} 记住你了，你们的关系变成了「${TIERS[c.tier].label}」。` : `${c.name} 记住了这次聊的内容，下次接着聊。`);
 }
 
 $("reviewBtn").addEventListener("click", () => {
@@ -987,9 +1108,11 @@ $("reviewBtn").addEventListener("click", () => {
       s.append(el("h3", null, `${c.name} 会记住`));
       s.append(el("p", "overall", mem || "（这次没有新的内容需要记住）"));
       const next = NEXT_TIER[c.tier];
-      s.append(el("p", "empty", next !== c.tier
-        ? `结束这次聊天后，你们的关系会从「${TIERS[c.tier].label}」变成「${TIERS[next].label}」，下次打开会接着这次的内容聊。`
-        : `结束这次聊天后，${c.name} 会带着这些记忆，下次接着聊。`));
+      s.append(el("p", "empty", canPromote(c)
+        ? `好感度 ${c.affinity}，够了！结束这次聊天后，你们的关系会从「${TIERS[c.tier].label}」变成「${TIERS[next].label}」，下次接着这次的内容聊。`
+        : next !== c.tier
+          ? `好感度 ${c.affinity}，还差一点（到 ${PROMOTE_AT[c.tier]} 才能变成「${TIERS[next].label}」）。${c.name} 会记住这次聊的内容，下次接着聊。`
+          : `结束这次聊天后，${c.name} 会带着这些记忆，下次接着聊。`));
       const done = el("button", "primary", "记住这次，下次接着聊");
       done.addEventListener("click", () => endSession(mem));
       s.append(done);
@@ -1068,6 +1191,13 @@ function openSettings() {
     const backup = providerFields("b-", settings.backup, true);
     s.append(backup.wrap);
 
+    s.append(el("h3", null, "关于你"));
+    const fc = el("div", "field");
+    const lc = el("label", null, "你住在哪个城市"); lc.htmlFor = "city";
+    const cityIn = el("input"); cityIn.id = "city"; cityIn.autocomplete = "off"; cityIn.value = settings.city || "Melbourne";
+    fc.append(lc, cityIn, el("small", null, "当面认识的人会出现在你的城市；在国外的人默认是线上聊天。"));
+    s.append(fc);
+
     const status = el("p", "status");
     const row = el("div", "row");
     const saveBtn = el("button", "primary", "保存并测试");
@@ -1075,7 +1205,7 @@ function openSettings() {
     saveBtn.addEventListener("click", async () => {
       const m = main.read();
       const b = backup.read();
-      settings = { ...m, backup: b && b.key ? b : null };
+      settings = { ...m, backup: b && b.key ? b : null, city: cityIn.value.trim() || "Melbourne" };
       store.set("settings", settings);
       render();
       if (!settings.key) { status.className = "status bad"; status.textContent = "请先填主 AI 的 API Key。"; return; }
