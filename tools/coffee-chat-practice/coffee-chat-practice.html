@@ -1,0 +1,929 @@
+<title>Coffee Chat 练习室</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Noto+Sans+SC:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one working surface. Setup and prep notes on the left, the conversation on the right; history as its own tab. */
+:root {
+  --bg: #f3f5f2;
+  --surface: #ffffff;
+  --sunk: #e8ece7;
+  --fg: #18221e;
+  --muted: #5c6a63;
+  --line: #d3dad4;
+  --accent: #2c6a58;
+  --accent-ink: #ffffff;
+  --accent-soft: #dcebe4;
+  --crema: #a8691c;
+  --crema-soft: #f5e8d4;
+  --good: #2f7d4f;
+  --warn: #a8691c;
+  --bad: #b23b3b;
+  --font-display: "Bricolage Grotesque", "Noto Sans SC", system-ui, sans-serif;
+  --font-body: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+  --r: 10px;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #121815; --surface: #1a221e; --sunk: #222c27; --fg: #e5ece7; --muted: #9aaaa1; --line: #2f3a34;
+  --accent: #6fbfa3; --accent-ink: #0d1a15; --accent-soft: #1f3a31; --crema: #e0a858; --crema-soft: #3a2c18;
+  --good: #6cc48f; --warn: #e0a858; --bad: #ec7d7d; color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --bg: #121815; --surface: #1a221e; --sunk: #222c27; --fg: #e5ece7; --muted: #9aaaa1; --line: #2f3a34;
+  --accent: #6fbfa3; --accent-ink: #0d1a15; --accent-soft: #1f3a31; --crema: #e0a858; --crema-soft: #3a2c18;
+  --good: #6cc48f; --warn: #e0a858; --bad: #ec7d7d; color-scheme: dark; }
+
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--fg); font-family: var(--font-body); font-size: 15px; line-height: 1.6; }
+.wrap { max-width: 1180px; margin: 0 auto; padding-block: 20px 48px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+h1, h2, h3 { font-family: var(--font-display); text-wrap: balance; margin: 0; line-height: 1.25; }
+h1 { font-size: 1.7rem; font-weight: 700; letter-spacing: -0.01em; }
+h2 { font-size: 1.15rem; font-weight: 700; }
+h3 { font-size: 0.98rem; font-weight: 700; }
+p { margin: 0; }
+button, select, textarea, input { font: inherit; color: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.label { font-size: 0.74rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); font-weight: 500; }
+.muted { color: var(--muted); }
+.mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+
+header.top { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 12px 24px; margin-bottom: 18px; }
+header.top .sub { color: var(--muted); font-size: 0.92rem; margin-top: 4px; }
+.tabs { display: flex; gap: 4px; background: var(--sunk); padding: 4px; border-radius: 999px; }
+.tabs button { border: 0; background: transparent; padding: 6px 16px; border-radius: 999px; color: var(--muted); font-weight: 500; }
+.tabs button[aria-selected="true"] { background: var(--surface); color: var(--fg); box-shadow: 0 1px 2px rgb(0 0 0 / 0.08); }
+
+.grid { display: grid; grid-template-columns: minmax(0, 360px) minmax(0, 1fr); gap: 20px; align-items: start; }
+@media (max-width: 860px) { .grid { grid-template-columns: minmax(0, 1fr); } }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 18px; display: grid; gap: 14px; min-width: 0; }
+.field { display: grid; gap: 6px; }
+.field > span { font-size: 0.86rem; font-weight: 500; }
+select, textarea, input[type="text"] { width: 100%; background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; }
+textarea { resize: vertical; min-height: 72px; }
+.seg { display: flex; flex-wrap: wrap; gap: 6px; }
+.seg label { flex: 1 1 auto; }
+.seg input { position: absolute; opacity: 0; pointer-events: none; }
+.seg span { display: block; text-align: center; border: 1px solid var(--line); border-radius: 8px; padding: 6px 10px; font-size: 0.88rem; cursor: pointer; background: var(--bg); }
+.seg input:checked + span { border-color: var(--accent); background: var(--accent-soft); color: var(--fg); font-weight: 500; }
+.seg input:focus-visible + span { outline: 2px solid var(--accent); outline-offset: 2px; }
+.persona-card { background: var(--sunk); border-radius: 8px; padding: 10px 12px; font-size: 0.88rem; display: grid; gap: 4px; }
+.persona-card strong { font-family: var(--font-display); font-size: 0.98rem; }
+
+.btn { border: 1px solid var(--line); background: var(--surface); border-radius: 8px; padding: 8px 14px; font-weight: 500; }
+.btn:hover { border-color: var(--muted); }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.btn.primary:hover { filter: brightness(1.06); }
+.btn.danger { color: var(--bad); }
+.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+
+/* Conversation */
+.chat { display: grid; grid-template-rows: auto minmax(0, 1fr) auto; min-height: 560px; max-height: 78vh; padding: 0; gap: 0; overflow: hidden; }
+.chat-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 8px 16px; padding: 12px 16px; border-bottom: 1px solid var(--line); }
+.who { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.avatar { width: 36px; height: 36px; border-radius: 50%; background: var(--crema-soft); color: var(--crema); display: grid; place-items: center; font-family: var(--font-display); font-weight: 700; flex: none; }
+.who-text { min-width: 0; }
+.who-text strong { display: block; font-family: var(--font-display); }
+.who-text small { color: var(--muted); display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.clock { font-family: var(--font-mono); font-variant-numeric: tabular-nums; font-size: 0.95rem; padding: 3px 10px; border-radius: 999px; background: var(--sunk); }
+.clock.over { background: var(--crema-soft); color: var(--crema); }
+.msgs { overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 10px; }
+.msg { max-width: 82%; padding: 9px 13px; border-radius: 14px; white-space: pre-wrap; overflow-wrap: anywhere; }
+.msg.them { background: var(--sunk); align-self: flex-start; border-bottom-left-radius: 4px; }
+.msg.me { background: var(--accent); color: var(--accent-ink); align-self: flex-end; border-bottom-right-radius: 4px; }
+.msg.typing { color: var(--muted); font-style: italic; }
+.turn { display: flex; flex-direction: column; gap: 3px; max-width: 82%; }
+.turn.them { align-self: flex-start; }
+.turn.me { align-self: flex-end; align-items: flex-end; }
+.turn .msg { max-width: 100%; }
+.act { font-size: 0.82rem; font-style: italic; color: var(--muted); padding: 0 4px; }
+.msg.me.act-only { background: transparent; color: var(--muted); font-style: italic; border: 1px dashed var(--line); }
+.note { font-size: 0.8rem; color: var(--fg); background: var(--crema-soft); border-radius: 8px; padding: 4px 9px; display: grid; gap: 1px; }
+.note b { font-weight: 500; color: var(--crema); margin-right: 4px; }
+.notes-off .note { display: none; }
+.meter { display: flex; align-items: center; gap: 8px; font-size: 0.78rem; color: var(--muted); }
+.meter .bar { width: 90px; height: 6px; border-radius: 3px; background: var(--sunk); overflow: hidden; }
+.meter .bar i { display: block; height: 100%; background: var(--accent); transition: width 600ms ease; }
+.meter .delta { font-family: var(--font-mono); min-width: 2.2em; }
+.meter .delta.up { color: var(--good); } .meter .delta.down { color: var(--bad); }
+.notes-off .meter { display: none; }
+.toggle { display: flex; align-items: center; gap: 6px; font-size: 0.82rem; color: var(--muted); cursor: pointer; }
+.quick { display: flex; flex-wrap: wrap; gap: 6px; }
+.quick button { border: 1px solid var(--line); background: var(--bg); border-radius: 999px; padding: 3px 10px; font-size: 0.82rem; color: var(--muted); }
+.quick button:hover { color: var(--fg); border-color: var(--muted); }
+.dots::after { content: "…"; }
+@media (prefers-reduced-motion: no-preference) {
+  .dots::after { animation: dots 1.2s steps(4) infinite; content: ""; display: inline-block; width: 1.2em; text-align: left; }
+  @keyframes dots { 0% { content: ""; } 25% { content: "."; } 50% { content: ".."; } 75% { content: "..."; } }
+}
+.empty-chat { margin: auto; text-align: center; max-width: 420px; display: grid; gap: 10px; color: var(--muted); padding: 24px 8px; }
+.empty-chat h2 { color: var(--fg); }
+.compose { border-top: 1px solid var(--line); padding: 12px 16px; display: grid; gap: 8px; }
+.compose textarea { min-height: 52px; max-height: 160px; }
+.compose .row { justify-content: space-between; }
+.hint { font-size: 0.8rem; color: var(--muted); }
+.notice { font-size: 0.86rem; padding: 8px 12px; border-radius: 8px; background: var(--crema-soft); color: var(--fg); }
+
+/* Feedback */
+.fb { display: grid; gap: 16px; }
+.score-row { display: flex; flex-wrap: wrap; align-items: center; gap: 16px; }
+.score { font-family: var(--font-display); font-size: 2.6rem; font-weight: 700; line-height: 1; }
+.score small { font-size: 1rem; color: var(--muted); font-weight: 500; }
+.chip { display: inline-block; font-size: 0.78rem; padding: 2px 10px; border-radius: 999px; background: var(--sunk); color: var(--muted); font-weight: 500; }
+.chip.ok { background: var(--accent-soft); color: var(--good); }
+.chip.no { background: var(--crema-soft); color: var(--warn); }
+.fb section { display: grid; gap: 8px; }
+.fb ul { margin: 0; padding-left: 1.2em; display: grid; gap: 6px; }
+.fix { border-left: 3px solid var(--line); padding: 4px 0 4px 12px; display: grid; gap: 2px; }
+.fix .from { color: var(--muted); text-decoration: line-through; text-decoration-color: var(--bad); }
+.fix .to { font-weight: 500; }
+.fix .why { font-size: 0.86rem; color: var(--muted); }
+
+/* Prep notes */
+details { border-top: 1px solid var(--line); padding-top: 10px; }
+details:first-of-type { border-top: 0; padding-top: 0; }
+summary { cursor: pointer; font-weight: 500; font-family: var(--font-display); }
+details > div { margin-top: 8px; display: grid; gap: 8px; font-size: 0.9rem; }
+.qlist { display: grid; gap: 6px; padding: 0; margin: 0; list-style: none; }
+.qlist li { display: grid; gap: 0; }
+.qlist .en { font-weight: 500; }
+.qlist .zh { color: var(--muted); font-size: 0.84rem; }
+.use-q { border: 0; background: none; padding: 0; text-align: left; color: inherit; }
+.use-q:hover .en { color: var(--accent); }
+.flow { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+.flow div { background: var(--sunk); border-radius: 8px; padding: 8px; font-size: 0.82rem; }
+.flow b { display: block; font-family: var(--font-mono); font-size: 0.95rem; }
+.credit { font-size: 0.78rem; color: var(--muted); }
+.credit a { color: inherit; }
+
+/* History */
+.hist-top { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
+.stat { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 14px 16px; display: grid; gap: 2px; }
+.stat b { font-family: var(--font-display); font-size: 1.6rem; font-variant-numeric: tabular-nums; }
+.trend { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 14px 16px; display: grid; gap: 8px; }
+.trend svg { width: 100%; height: 120px; display: block; }
+.hist-grid { display: grid; grid-template-columns: minmax(0, 340px) minmax(0, 1fr); gap: 20px; align-items: start; margin-top: 20px; }
+@media (max-width: 860px) { .hist-grid { grid-template-columns: minmax(0, 1fr); } }
+.hist-list { display: grid; gap: 8px; }
+.hitem { text-align: left; border: 1px solid var(--line); background: var(--surface); border-radius: var(--r); padding: 10px 14px; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 12px; align-items: center; }
+.hitem[aria-current="true"] { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+.hitem .t { font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.hitem .d { font-size: 0.8rem; color: var(--muted); grid-column: 1; }
+.hitem .s { grid-row: 1 / span 2; grid-column: 2; font-family: var(--font-display); font-weight: 700; font-size: 1.3rem; font-variant-numeric: tabular-nums; }
+.transcript { display: grid; gap: 6px; font-size: 0.9rem; max-height: 420px; overflow-y: auto; background: var(--bg); border-radius: 8px; padding: 12px; }
+.transcript p b { font-family: var(--font-mono); font-size: 0.78rem; color: var(--muted); margin-right: 6px; }
+.confirm { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; background: var(--crema-soft); padding: 8px 12px; border-radius: 8px; font-size: 0.88rem; }
+
+@media (prefers-reduced-motion: no-preference) {
+  .msg { animation: pop 160ms ease-out; }
+  @keyframes pop { from { transform: translateY(4px); opacity: 0.4; } to { transform: none; opacity: 1; } }
+}
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div>
+      <h1>Coffee Chat 练习室</h1>
+      <p class="sub">和各种性格的"从业者"练英文 coffee chat：对方会对你的语气、停顿和小动作作出反应，旁注实时解释，结束后拿到中文点评，每次都存档。</p>
+    </div>
+    <div class="tabs" role="tablist">
+      <button role="tab" id="tab-practice" aria-selected="true" aria-controls="view-practice">练习</button>
+      <button role="tab" id="tab-history" aria-selected="false" aria-controls="view-history">练习记录</button>
+    </div>
+  </header>
+
+  <!-- PRACTICE -->
+  <section id="view-practice" role="tabpanel" aria-labelledby="tab-practice">
+    <div class="grid">
+      <aside class="panel" id="setup">
+        <h2>这次和谁聊</h2>
+        <label class="field"><span>对方角色</span>
+          <select id="persona"></select>
+        </label>
+        <div class="persona-card" id="persona-card"></div>
+        <div class="field"><span>对方状态</span>
+          <div class="seg" id="difficulty"></div>
+        </div>
+        <div class="field"><span>计划时长</span>
+          <div class="seg" id="duration"></div>
+        </div>
+        <label class="field"><span>练习重点</span>
+          <select id="focus"></select>
+        </label>
+        <button class="btn" type="button" id="btn-random">随机配一个人和性格</button>
+        <label class="field"><span>你的背景（只用于点评，可选）</span>
+          <textarea id="bg" placeholder="例：公共卫生硕士，墨尔本在读，会 R 和一点 SQL，想找 data analyst 或 research assistant 入门岗位"></textarea>
+        </label>
+        <label class="field"><span>这次想练什么（可选）</span>
+          <input type="text" id="goal" placeholder="例：自我介绍更自然；结尾要到推荐人">
+        </label>
+
+        <details open>
+          <summary>聊天结构 20 / 55 / 25</summary>
+          <div>
+            <div class="flow">
+              <div><b>20%</b>寒暄 + 30 秒自我介绍，说明为什么约对方</div>
+              <div><b>55%</b>按重要性问 3–5 个问题，跟着回答追问</div>
+              <div><b>25%</b>问"我能帮上什么"，礼貌收尾，问可以再联系谁</div>
+            </div>
+            <p>自我介绍模板：<em>I'm ___, I recently finished ___ and I'm based in Melbourne. I've been looking into ___ roles, and since you've been doing that at ___ for a few years, I'd love to hear how you got into it.</em></p>
+          </div>
+        </details>
+        <details>
+          <summary>问题库（点一下填进输入框）</summary>
+          <div id="qbank"></div>
+        </details>
+        <details>
+          <summary>注意事项</summary>
+          <div>
+            <ul class="qlist">
+              <li><span class="en">别直接要工作或内推</span><span class="zh">第一次聊重点是了解和建立关系；对方愿意的话会主动提</span></li>
+              <li><span class="en">公开查得到的不问</span><span class="zh">先看对方 LinkedIn 和雇主官网，问只有本人能回答的</span></li>
+              <li><span class="en">准时结束</span><span class="zh">到点主动说 "I know we're about at time"，对方想继续自然会说</span></li>
+              <li><span class="en">24 小时内发感谢</span><span class="zh">提一句聊到的具体内容，附上答应过的东西</span></li>
+            </ul>
+          </div>
+        </details>
+        <p class="credit">结构和部分原则改编自 <a href="https://github.com/cwlin0131/coffee-chat-prep" target="_blank" rel="noopener">Coffee Chat Playbook</a>（CW Lin，CC BY 4.0），已改为求职场景。</p>
+      </aside>
+
+      <div class="panel chat" id="chat">
+        <div class="chat-head">
+          <div class="who">
+            <div class="avatar" id="avatar">P</div>
+            <div class="who-text"><strong id="who-name">—</strong><small id="who-role">—</small></div>
+          </div>
+          <div class="row">
+            <span class="meter" id="meter" hidden title="对方此刻有多投入，会随你的每句话变化"><span>对方投入度</span><span class="bar"><i id="meter-fill" style="width:50%"></i></span><span class="delta" id="meter-delta"></span></span>
+            <label class="toggle"><input type="checkbox" id="notes-toggle" checked> 实时旁注</label>
+            <span class="clock" id="clock">00:00</span>
+            <button class="btn" id="btn-end" hidden>结束并点评</button>
+          </div>
+        </div>
+        <div class="msgs" id="msgs" aria-live="polite"></div>
+        <div class="compose" id="compose">
+          <div class="notice" id="notice" hidden></div>
+          <div id="start-area" class="row">
+            <button class="btn primary" id="btn-start">开始 coffee chat</button>
+            <span class="hint">对方先打招呼，你用英文回应。</span>
+          </div>
+          <div id="input-area" hidden>
+            <label for="input" class="label">你的回复（英文）</label>
+            <textarea id="input" placeholder="Hi! Thanks so much for making the time...（动作可以写在括号里，比如 (laughs)）"></textarea>
+            <div class="quick" id="quick" aria-label="小反应"></div>
+            <div class="row">
+              <span class="hint">Enter 发送 · Shift+Enter 换行 · 你回得快慢对方也感觉得到</span>
+              <button class="btn primary" id="btn-send">发送</button>
+            </div>
+          </div>
+          <div id="after-area" class="row" hidden>
+            <button class="btn primary" id="btn-again">再练一次</button>
+            <button class="btn" id="btn-to-history">查看练习记录</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- HISTORY -->
+  <section id="view-history" role="tabpanel" aria-labelledby="tab-history" hidden>
+    <div class="hist-top">
+      <div class="stat"><span class="label">练习次数</span><b id="st-count">0</b></div>
+      <div class="stat"><span class="label">平均分</span><b id="st-avg">—</b></div>
+      <div class="stat"><span class="label">最近 3 次平均</span><b id="st-recent">—</b></div>
+      <div class="stat"><span class="label">累计时长</span><b id="st-min">0 分钟</b></div>
+    </div>
+    <div class="trend" id="trend" style="margin-top:12px">
+      <span class="label">分数变化</span>
+      <svg id="trend-svg" viewBox="0 0 600 120" preserveAspectRatio="none" role="img" aria-label="每次练习的分数"></svg>
+    </div>
+    <div class="hist-grid">
+      <div class="hist-list" id="hist-list"></div>
+      <div class="panel" id="hist-detail"></div>
+    </div>
+  </section>
+</div>
+
+<script>
+(() => {
+  // ---------- Content ----------
+  const PERSONAS = [
+    { id: "cda", name: "Priya", title: "Clinical Data Analyst", org: "墨尔本一家大型公立医疗服务机构",
+      zh: "在医院数据团队 4 年，日常写 SQL（SQL Server）、做 Power BI 报表、对接 Epic 病历系统的数据。从 graduate analyst 做起。",
+      en: "Priya, a Clinical Data Analyst with 4 years at a large public health service in Melbourne. Day to day: SQL Server queries, Power BI dashboards, reporting from the Epic EMR, data requests from clinicians and the Department of Health. Started as a graduate data analyst after a Master of Public Health. Practical, a bit dry humour.",
+      open: "Hi! Sorry, the coffee line was ridiculous. You reached out on LinkedIn, right? Nice to meet you." },
+    { id: "ra", name: "Tom", title: "Research Assistant（流行病学）", org: "墨尔本一所大学的人口与全球健康学院",
+      zh: "在 NHMRC 资助的项目做研究助理，做系统综述、数据清洗和 R/Stata 分析，正在考虑读博。",
+      en: "Tom, a Research Assistant at a Melbourne university's school of population and global health, working on an NHMRC-funded project. Does systematic reviews, data cleaning, and analysis in R and Stata. Got the job after volunteering on a project during his Master's. Considering a PhD. Thoughtful, friendly, talks a lot about academia's contract-to-contract reality.",
+      open: "Hey, good to meet you! I've only got a little while before a team meeting, but happy to chat. What's on your mind?" },
+    { id: "ctc", name: "Mei", title: "Clinical Trial Coordinator", org: "墨尔本一家医院的临床研究部门",
+      zh: "从 Clinical Trial Assistant 做起，现在协调肿瘤临床试验，招募患者、管理 CRF 和伦理文件。有 GCP 证书。",
+      en: "Mei, a Clinical Trial Coordinator in a Melbourne hospital's oncology research unit. Started as a Clinical Trial Assistant on a 6-month contract after a biomedical science degree. Handles patient recruitment, CRFs, ethics submissions, sponsor monitoring visits. Has GCP certification. Warm, organised, honest that the role is busy and contracts are short.",
+      open: "Hi there! Lovely to meet you. I grabbed us a table in the corner — so, tell me a bit about yourself?" },
+    { id: "doh", name: "James", title: "Senior Data Analyst", org: "维州政府卫生部门",
+      zh: "在政府卫生部门做分析，用 SQL、Power BI 和 Azure Databricks，支持政策和医院绩效报告。",
+      en: "James, a Senior Data Analyst in the Victorian state government's health department. Uses SQL, Power BI and Azure Databricks; supports policy teams and hospital performance reporting with state health datasets. Came from a private-sector analytics job 5 years ago. Measured, precise, cares about how candidates think about data quality and stakeholders. Notes that government roles often need citizenship or permanent residency.",
+      open: "Hello, good to meet you. I've got about twenty minutes. What would you like to know?" },
+    { id: "cra", name: "Sarah", title: "Clinical Research Associate", org: "一家跨国 CRO（合同研究组织）",
+      zh: "做了 3 年现场监查 CRA，经常出差去各个研究中心，之前在医院当过 trial coordinator。",
+      en: "Sarah, a Clinical Research Associate at a global contract research organisation (CRO), 3 years of on-site monitoring across Victorian and interstate sites, lots of travel. Was a hospital trial coordinator before. Direct and energetic; knows most CRA roles want 2+ years of monitoring experience and full work rights, and will say so plainly.",
+      open: "Hi! Sorry, I've just come from a site visit so I'm a bit frazzled. Great to meet you though — what can I help with?" },
+    { id: "lead", name: "Daniel", title: "Data & Analytics Team Lead（会招人）", org: "墨尔本一家医疗服务机构的数据团队",
+      zh: "带一个 8 人数据团队，参与招聘。聊得好可能会记住你，但不会当场给工作。",
+      en: "Daniel, team lead of an 8-person data and analytics team at a Melbourne health service, involved in hiring graduates and analysts. Friendly but evaluative: quietly notices whether the person did their homework, can explain their skills concretely, and respects his time. Won't offer a job or referral on the spot, but might suggest keeping in touch or name someone else to talk to if impressed.",
+      open: "Hi, thanks for reaching out. Always happy to meet people interested in health data. So, where are you at?" },
+    { id: "nurse", name: "Grace", title: "护士转行 Clinical Informatics", org: "墨尔本一家私立医院",
+      zh: "当了 10 年 ICU 护士，后来转去做电子病历系统和临床流程优化。很懂一线，聊天会讲病房里的故事。",
+      en: "Grace, a former ICU nurse of 10 years who moved into clinical informatics at a private hospital in Melbourne, working on the EMR rollout and clinical workflows. Loves stories from the ward, values people who understand clinicians' pain points, a bit sceptical of 'data people' who've never been near a patient.",
+      open: "Hi love, sorry — I came straight from a meeting. Right, coffee's here. So how did you find me?" },
+    { id: "prof", name: "Alan", title: "流行病学副教授", org: "墨尔本一所大学",
+      zh: "带博士生，手上有几个科研项目。说话慢条斯理，喜欢反问，讨厌被当成'找工作的跳板'。",
+      en: "Associate Professor Alan, an epidemiologist at a Melbourne university who supervises PhD students and leads grant-funded projects. Speaks slowly and thoughtfully, likes asking Socratic questions back, enjoys genuine curiosity about research, quietly put off when people treat him purely as a stepping stone to a job.",
+      open: "Ah, hello. Please, sit. I have to confess I don't remember exactly what your email said — remind me?" },
+    { id: "lina", name: "Lina", title: "Data Analyst（同样是留学生出身）", org: "墨尔本一家保险/健康险公司",
+      zh: "中国留学生，墨尔本读完硕士后找了大半年工作，两年前入职。像学姐，但也会觉得'太功利'的问法有点累。",
+      en: "Lina, originally an international student from China, finished a Master's in Melbourne, job-hunted for most of a year, and has been a Data Analyst at a health insurer for two years. Friendly like an older schoolmate, speaks English with the conversation (occasionally a Chinese word slips in), very honest about the visa and job-search grind, gets a little tired when people only want tips and treat her like a vending machine.",
+      open: "Hey! Finally meeting in person, haha. Did you find the place okay? This café is kind of hidden." },
+    { id: "founder", name: "Mark", title: "Health-tech 创业公司创始人", org: "一家做远程医疗软件的初创公司",
+      zh: "节奏快、想法多，喜欢聊产品和愿景，会突然问你'你觉得这个市场怎么样'。",
+      en: "Mark, founder of a small Melbourne telehealth software startup (about 15 people). Fast-talking, big-picture, loves talking about product and vision, often flips the conversation by asking what you think about the market. Respects people with opinions; bored by people who only ask textbook questions.",
+      open: "Hey hey, good to meet you. Grab whatever you want, it's on me. So — what's your story?" },
+    { id: "recruiter", name: "Rachel", title: "医疗行业招聘顾问", org: "一家招聘中介",
+      zh: "每天见很多候选人，说话直接，几分钟就能判断你清不清楚自己要什么。",
+      en: "Rachel, a recruitment consultant specialising in healthcare and health-data roles at a Melbourne agency. Meets lots of candidates, very direct, quickly judges whether someone knows what they want and can describe their skills crisply. Friendly but efficient; will be blunt about work-rights requirements and the market.",
+      open: "Hi! Nice to put a face to the name. So, tell me — what kind of role are you actually after?" },
+    { id: "ops", name: "Ben", title: "医院运营经理", org: "墨尔本一家社区医疗机构",
+      zh: "不是做数据的，但天天用报表做决策。务实、讨厌术语，喜欢听大白话。",
+      en: "Ben, an operations manager at a community health organisation in Melbourne. Not a data person, but relies on reports to manage staffing and waitlists every day. Practical, down to earth, dislikes jargon, likes plain talk and footy chat, values people who can explain things simply.",
+      open: "G'day, how's it going? Bloody cold out there today, eh. What are you having?" },
+    { id: "meetup", name: "Chloe", title: "活动上偶遇的人", org: "一场健康数据 meetup 的茶歇时间",
+      zh: "不是约好的 coffee chat，是你在 meetup 茶歇时主动搭话。对方不知道你是谁，练的是破冰和闲聊。",
+      en: "Chloe, a stranger at the coffee break of a health data meetup in Melbourne. She works as a policy officer in a government health agency, came alone, is holding a coffee and scrolling her phone. This is NOT a planned coffee chat: the job seeker has just walked up to her. She doesn't know who they are, so small talk and a natural reason to talk matter. She'll drift away politely if it feels like a sales pitch.",
+      act: "looks up from phone", open: "Oh — hi.",
+      setting: "The coffee break at a health data meetup in Melbourne. The job seeker has just walked up to you uninvited; you've never met. Break is about " }
+  ];
+  const DIFFICULTY = [
+    { id: "warm", zh: "很热心", en: "Very warm and enthusiastic. Shares generously, tells stories, offers ideas and even help, asks lots of questions back. The challenge for the job seeker is to listen, respond and not just take." },
+    { id: "friendly", zh: "友好", en: "Warm and generous with time. Gives full, helpful answers and occasionally asks the candidate a question back." },
+    { id: "busy", zh: "很忙", en: "Busy and slightly distracted. Answers are short (1-2 sentences) unless a question is genuinely interesting. Mentions the hard stop when time is nearly up." },
+    { id: "reserved", zh: "慢热", en: "Polite but guarded at first. Gives generic answers to generic questions; opens up with concrete, specific, well-researched questions or when the candidate shares something real about themselves." },
+    { id: "cold", zh: "冷淡", en: "Cool and a bit detached. Minimal answers, little eye contact, doesn't ask questions back, lets silences sit. Not rude, just hard to warm up. Only genuine curiosity, humour or a real shared interest thaws them, and they cool further at anything that feels transactional." },
+    { id: "chatty", zh: "话多爱跑题", en: "Talkative and goes off on tangents (weekend plans, footy, a funny story from work). Friendly, but the job seeker must enjoy the tangent first and then gently steer back without sounding abrupt." }
+  ];
+  const DURATIONS = [15, 20, 30];
+  const FOCUS = [
+    { id: "human", zh: "少点目的性，多点聊天感", en: "Sounding less transactional and more like a natural, curious human: listening, reacting, small talk, sharing a bit of themselves, asking for things only when the moment is right." },
+    { id: "overall", zh: "综合练习", en: "A well-rounded coffee chat: good opening, thoughtful questions, a graceful close with a next step." },
+    { id: "intro", zh: "自我介绍和开场", en: "Opening and self-introduction: sounding natural, concise, and giving the other person something to connect with." },
+    { id: "steer", zh: "自然转话题 / 接住冷场", en: "Steering topics smoothly, recovering from awkward silences, and handling tangents without being abrupt." },
+    { id: "close", zh: "收尾和要下一步", en: "Wrapping up on time and asking for a next step (keeping in touch, someone else to talk to) without sounding pushy." }
+  ];
+  const QBANK = [
+    { h: "开场 / 自我介绍", q: [
+      ["Thanks so much for making the time. I know you're busy.", "开场先道谢"],
+      ["I came across your profile because I'm really interested in health data roles in Melbourne.", "说明为什么约对方"] ] },
+    { h: "接住对方的话（少点目的性）", q: [
+      ["Oh wow, that sounds intense. How did you handle that?", "先回应对方刚说的，再追问"],
+      ["Ha, that's so relatable.", "对方开玩笑或吐槽时，先共鸣"],
+      ["Sorry, I've been asking a lot of questions. How's your week been, actually?", "发现自己问太多时，停下来关心对方"],
+      ["I had a similar moment when I first moved to Melbourne...", "分享一点自己，换对方也愿意多说"],
+      ["That's really interesting. Going back to what you said about ___, ...", "从跑题自然拉回来"] ] },
+    { h: "了解岗位", q: [
+      ["What does a typical week look like for you?", "日常工作是什么样"],
+      ["What's the part of the job you didn't expect before you started?", "入职后才发现的事"],
+      ["Who do you work with most closely day to day?", "和谁协作最多"] ] },
+    { h: "入行路径", q: [
+      ["How did you get your first role in this field?", "第一份工作怎么拿到的"],
+      ["If you were starting again in Melbourne today, what would you do differently?", "如果重来会怎么做"] ] },
+    { h: "技能与求职", q: [
+      ["Which skills made the biggest difference early on? Is it mostly SQL and Power BI, or something else?", "最关键的技能"],
+      ["Is a certificate like GCP worth getting before applying for trial assistant roles?", "证书值不值得先考"],
+      ["What do hiring managers on your team look for in entry-level candidates?", "招入门岗位看重什么"] ] },
+    { h: "收尾", q: [
+      ["Is there anything I could help you with? Happy to return the favour.", "问自己能帮什么"],
+      ["Is there anyone else you'd suggest I talk to?", "可以再联系谁"],
+      ["Would it be okay if I kept you posted on how things go?", "保持联系"] ] }
+  ];
+
+  // ---------- Helpers ----------
+  const $ = (id) => document.getElementById(id);
+  const el = (tag, cls, text) => { const n = document.createElement(tag); if (cls) n.className = cls; if (text != null) n.textContent = text; return n; };
+  const store = {
+    get(k) { try { return localStorage.getItem(k); } catch { return null; } },
+    set(k, v) { try { localStorage.setItem(k, v); } catch {} }
+  };
+  const fmtClock = (ms) => { const s = Math.max(0, Math.floor(ms / 1000)); return String(Math.floor(s / 60)).padStart(2, "0") + ":" + String(s % 60).padStart(2, "0"); };
+  const fmtDate = (iso) => { const d = new Date(iso); return d.toLocaleDateString("zh-CN", { month: "numeric", day: "numeric" }) + " " + d.toLocaleTimeString("zh-CN", { hour: "2-digit", minute: "2-digit" }); };
+  const personaById = (id) => PERSONAS.find((p) => p.id === id) || PERSONAS[0];
+  const diffById = (id) => DIFFICULTY.find((d) => d.id === id) || DIFFICULTY[0];
+
+  // ---------- Setup UI ----------
+  const personaSel = $("persona");
+  PERSONAS.forEach((p) => { const o = el("option", null, p.name + " · " + p.title); o.value = p.id; personaSel.appendChild(o); });
+  function seg(container, name, items, getLabel) {
+    items.forEach((it, i) => {
+      const lab = el("label");
+      const inp = document.createElement("input");
+      inp.type = "radio"; inp.name = name; inp.id = name + "-" + i; inp.value = String(it.id ?? it);
+      if (i === 0) inp.checked = true;
+      lab.append(inp, el("span", null, getLabel(it)));
+      container.appendChild(lab);
+    });
+  }
+  seg($("difficulty"), "difficulty", DIFFICULTY, (d) => d.zh);
+  seg($("duration"), "duration", DURATIONS, (m) => m + " 分钟");
+  const radio = (name) => document.querySelector('input[name="' + name + '"]:checked').value;
+
+  const focusSel = $("focus");
+  FOCUS.forEach((f) => { const o = el("option", null, f.zh); o.value = f.id; focusSel.appendChild(o); });
+  focusSel.value = store.get("cc.focus") || "human";
+  focusSel.addEventListener("change", () => store.set("cc.focus", focusSel.value));
+  $("btn-random").addEventListener("click", () => {
+    personaSel.value = PERSONAS[Math.floor(Math.random() * PERSONAS.length)].id;
+    const d = document.querySelectorAll('input[name="difficulty"]');
+    d[Math.floor(Math.random() * d.length)].checked = true;
+    store.set("cc.persona", personaSel.value); renderPersona();
+  });
+  personaSel.value = store.get("cc.persona") || "cda";
+  $("bg").value = store.get("cc.bg") || "";
+  personaSel.addEventListener("change", () => { store.set("cc.persona", personaSel.value); renderPersona(); });
+  $("bg").addEventListener("input", () => store.set("cc.bg", $("bg").value));
+
+  function renderPersona() {
+    const p = personaById(personaSel.value);
+    const card = $("persona-card"); card.replaceChildren();
+    card.append(el("strong", null, p.name + " · " + p.title), el("span", "muted", p.org), el("span", null, p.zh));
+    if (state.phase === "setup" || state.phase === "done") {
+      $("avatar").textContent = p.name[0];
+      $("who-name").textContent = p.name;
+      $("who-role").textContent = p.title + " · " + p.org;
+    }
+  }
+
+  // Question bank
+  const qb = $("qbank");
+  QBANK.forEach((g) => {
+    qb.appendChild(el("h3", null, g.h));
+    const ul = el("ul", "qlist");
+    g.q.forEach(([en, zh]) => {
+      const li = el("li"); const b = el("button", "use-q"); b.type = "button";
+      b.append(el("span", "en", en), document.createElement("br"), el("span", "zh", zh));
+      b.addEventListener("click", () => {
+        if (state.phase !== "chat") return;
+        const ta = $("input"); ta.value = (ta.value ? ta.value.trimEnd() + " " : "") + en; ta.focus();
+      });
+      li.appendChild(b); ul.appendChild(li);
+    });
+    qb.appendChild(ul);
+  });
+
+  // ---------- State ----------
+  const state = { phase: "setup", turns: [], persona: null, diff: null, minutes: 20, startedAt: 0, timer: null, busy: false, ctrl: null, engagement: 50, lastThemAt: 0 };
+  const START_ENGAGEMENT = { warm: 70, friendly: 60, busy: 40, reserved: 35, cold: 25, chatty: 65 };
+  const OPEN_ACTION = { warm: "big smile, waves you over", friendly: "smiles, puts coffee down", busy: "checks watch, sits down", reserved: "shakes hands, sits back", cold: "nods briefly, stirs coffee", chatty: "already laughing, pulls out a chair" };
+
+  function setPhase(phase) {
+    state.phase = phase;
+    $("start-area").hidden = phase !== "setup";
+    $("input-area").hidden = phase !== "chat";
+    $("after-area").hidden = phase !== "done";
+    $("btn-end").hidden = phase !== "chat";
+    ["persona", "bg", "goal", "focus", "btn-random"].forEach((id) => $(id).disabled = phase === "chat" || phase === "review");
+    document.querySelectorAll('#setup input[type="radio"]').forEach((r) => r.disabled = phase === "chat" || phase === "review");
+  }
+  function notice(text) { const n = $("notice"); n.textContent = text || ""; n.hidden = !text; }
+
+  function renderEmpty() {
+    const m = $("msgs"); m.replaceChildren();
+    const box = el("div", "empty-chat");
+    box.append(el("h2", null, "左边选好对方，然后开始"),
+      el("p", null, "对方会先打招呼。你用英文聊，像真的坐在咖啡店里一样。时间到了记得主动收尾，然后点「结束并点评」。"),
+      el("p", null, "每次结束后会自动存进「练习记录」，可以回看对话和点评，看分数怎么变化。"));
+    m.appendChild(box);
+  }
+  function addMsg(role, text) {
+    const m = $("msgs");
+    if (m.querySelector(".empty-chat")) m.replaceChildren();
+    const b = el("div", "msg " + role, text);
+    m.appendChild(b); m.scrollTop = m.scrollHeight;
+    return b;
+  }
+
+  function tick() {
+    const ms = Date.now() - state.startedAt;
+    const c = $("clock"); c.textContent = fmtClock(ms) + " / " + state.minutes + ":00";
+    c.classList.toggle("over", ms > state.minutes * 60000);
+  }
+
+  // ---------- Claude ----------
+  let samplePromise = window.claude?.use ? window.claude.use("sample") : Promise.resolve(null);
+  async function getSample() { try { return await samplePromise; } catch { return null; } }
+
+  function errText(e) {
+    const code = e && e.code;
+    if (code === "not_granted") return "你没有允许这个页面调用 Claude，所以对方没法回复。刷新页面后在弹窗里选择允许即可。";
+    if (code === "rate_limited") return "请求太频繁了，等半分钟再发。";
+    if (code === "session_expired") return "登录已过期，请刷新页面重新登录。";
+    if (code === "cancelled") return "";
+    return "Claude 暂时没有回应（" + (code || "unknown") + "），请再试一次。";
+  }
+
+  function transcriptText(turns, meLabel, themLabel, withMeta) {
+    return turns.map((t) => {
+      if (t.r === "me") {
+        const meta = withMeta && t.lat != null ? "[replied after " + t.lat + "s, " + t.t.length + " chars] " : "";
+        return meLabel + ": " + meta + t.t;
+      }
+      const meta = withMeta && t.e != null ? " [engagement " + t.e + "/100]" : "";
+      return themLabel + ": " + (t.a ? "(" + t.a + ") " : "") + t.t + meta;
+    }).join("\n");
+  }
+
+  function replyPrompt() {
+    const p = state.persona, d = state.diff;
+    const elapsed = Math.round((Date.now() - state.startedAt) / 60000);
+    return [
+      "You are playing a real person in a face-to-face coffee chat, so a job seeker can practise networking in English. This must feel like talking to an actual human, not a chatbot. Never mention being an AI and never coach the job seeker inside the conversation.",
+      "",
+      "YOUR CHARACTER: " + p.en,
+      "YOUR MOOD TODAY: " + d.en,
+      "SETTING: " + (p.setting ? p.setting + state.minutes + " minutes long." : "A café in Melbourne. The job seeker messaged you on LinkedIn asking for a coffee chat. Planned length: " + state.minutes + " minutes.") + " Elapsed: about " + elapsed + " minutes. Your engagement right now: " + state.engagement + "/100.",
+      "",
+      "WHAT THE JOB SEEKER IS PRACTISING: " + (FOCUS.find((f) => f.id === state.focus) || FOCUS[0]).en,
+      "",
+      "TRANSACTIONAL vs HUMAN (important): people can feel when they're being 'used'. You cool down (engagement drops, answers get shorter, a polite smile) when the job seeker: fires questions back to back like an interview, ignores what you just shared and jumps to their next question, steers every topic back to jobs/referrals/'how do I get in', opens with their ask before any rapport, or sounds like they're reading from a script. You warm up when they: react to what you said (\"oh that sounds intense\"), ask a follow-up that shows they listened, share a bit of themselves, laugh at your joke, show curiosity about you as a person, or are comfortable with a bit of small talk.",
+      "",
+      "BE HUMAN:",
+      "- Talk the way people actually talk: contractions, the odd \"yeah\", \"mm\", \"oh nice\", \"honestly\", half-finished thoughts, self-corrections. Not every reply needs a full answer.",
+      "- React to small things first, the way people do: a joke gets a laugh, a nervous apology gets reassurance, a compliment gets a slightly awkward thanks, a short \"mm-hmm\" from them means you keep going with your story.",
+      "- Match their energy and length. A one-word reply gets a short reply or you fill the gap. A long monologue makes you pick one thing to respond to, or wait politely to get a word in.",
+      "- Notice timing in the [replied after Ns] tags: a long pause might make you say \"no rush\" or move on yourself; instant answers to a big question can feel rehearsed.",
+      "- Lines in parentheses from them, e.g. (laughs) or (nods) or (stays quiet), are their body language. Respond to them like you saw it.",
+      "- Generic questions get generic answers. Specific, well-researched questions or genuine stories make you lean in and share more. Asking for a job or referral too early makes you a bit guarded.",
+      "- Your engagement moves gradually (usually -10 to +10 per turn). Let it show: higher means more detail, more warmth, questions back; lower means shorter answers, glancing at your phone, wrapping up.",
+      "- If time has passed the plan and they haven't wrapped up, start signalling you need to go. If they wrap up, close naturally.",
+      "",
+      "CONVERSATION SO FAR:",
+      transcriptText(state.turns, "Job seeker", p.name, true),
+      "",
+      "Return only a JSON object:",
+      '{"action": "your small visible reaction in English as you start speaking, a few words, e.g. \\"laughs\\", \\"nods slowly\\", \\"glances at phone\\", \\"leans in\\"; empty string if nothing notable", "speech": "what you say out loud (may be very short, e.g. \\"Ha, yeah.\\")", "engagement": integer 0-100, "reactionNote": "简体中文一句（不超过40字）：站在旁观教练角度，解释你这个反应和投入度变化背后的原因", "userNote": "简体中文一句（不超过40字）：点出求职者上一句里的一个细节（语气、措辞、时机、长短、肢体动作）做得好或不好；没有值得说的就空字符串"}'
+    ].join("\n");
+  }
+
+  function setMeter(v, prev) {
+    $("meter").hidden = false;
+    $("meter-fill").style.width = Math.max(3, v) + "%";
+    const dEl = $("meter-delta"), diff = prev == null ? 0 : v - prev;
+    dEl.textContent = diff ? (diff > 0 ? "+" : "") + diff : "";
+    dEl.className = "delta" + (diff > 0 ? " up" : diff < 0 ? " down" : "");
+  }
+
+  const reduceMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+  function reveal(node, text) {
+    return new Promise((resolve) => {
+      if (reduceMotion || !text) { node.textContent = text; resolve(); return; }
+      const step = Math.max(1, Math.ceil(text.length / 70)); let i = 0;
+      const id = setInterval(() => {
+        i = Math.min(text.length, i + step); node.textContent = text.slice(0, i);
+        $("msgs").scrollTop = $("msgs").scrollHeight;
+        if (i >= text.length) { clearInterval(id); resolve(); }
+      }, 28);
+    });
+  }
+
+  function addThem(turn, animate) {
+    const m = $("msgs");
+    if (m.querySelector(".empty-chat")) m.replaceChildren();
+    const g = el("div", "turn them");
+    if (turn.a) g.appendChild(el("span", "act", "(" + turn.a + ")"));
+    const b = el("div", "msg them"); g.appendChild(b);
+    const notes = [];
+    if (turn.u) notes.push(["你刚才", turn.u]);
+    if (turn.n) notes.push(["对方", turn.n]);
+    if (notes.length) { const nb = el("div", "note"); notes.forEach(([k, v]) => { const s = el("span"); s.append(el("b", null, k), document.createTextNode(v)); nb.appendChild(s); }); nb.hidden = animate; g.appendChild(nb); }
+    m.appendChild(g); m.scrollTop = m.scrollHeight;
+    if (!animate) { b.textContent = turn.t; return Promise.resolve(); }
+    return reveal(b, turn.t).then(() => { const nb = g.querySelector(".note"); if (nb) nb.hidden = false; m.scrollTop = m.scrollHeight; });
+  }
+
+  function addMe(text) {
+    const m = $("msgs");
+    const g = el("div", "turn me");
+    const b = el("div", "msg me" + (/^\(.*\)$/.test(text) ? " act-only" : ""), text);
+    g.appendChild(b); m.appendChild(g); m.scrollTop = m.scrollHeight;
+    return g;
+  }
+
+  async function send(forced) {
+    const ta = $("input");
+    const text = (forced || ta.value).trim();
+    if (!text || state.busy) return;
+    const sample = await getSample();
+    if (!sample) { notice("这里无法连接 Claude。请在 claude.ai 里登录后打开这个页面。"); return; }
+    if (!forced) ta.value = "";
+    notice("");
+    const lat = Math.round((Date.now() - state.lastThemAt) / 1000);
+    state.turns.push({ r: "me", t: text, lat });
+    const meNode = addMe(text);
+    state.busy = true; $("btn-send").disabled = true;
+    const m = $("msgs");
+    const typing = el("div", "msg them typing"); typing.append(document.createTextNode(state.persona.name + " "), el("span", "dots"));
+    m.appendChild(typing); m.scrollTop = m.scrollHeight;
+    state.ctrl = new AbortController();
+    try {
+      let r;
+      try { r = await sample.json(replyPrompt(), { cache: false, modelTier: "default", signal: state.ctrl.signal }); }
+      catch (e) { if (e && e.code === "invalid_json" && e.text) r = { speech: e.text.replace(/[{}"]/g, "").trim() }; else throw e; }
+      const prev = state.engagement;
+      const eng = Number.isFinite(Number(r.engagement)) ? Math.max(0, Math.min(100, Math.round(Number(r.engagement)))) : prev;
+      const turn = { r: "them", t: String(r.speech || "…").trim(), a: String(r.action || "").trim().replace(/^\(|\)$/g, ""), e: eng, n: String(r.reactionNote || "").trim(), u: String(r.userNote || "").trim() };
+      typing.remove();
+      state.engagement = eng; setMeter(eng, prev);
+      state.turns.push(turn);
+      await addThem(turn, true);
+      state.lastThemAt = Date.now();
+    } catch (e) {
+      typing.remove(); meNode.remove();
+      state.turns.pop(); // let them resend
+      if (!forced) ta.value = text;
+      const msg = errText(e); if (msg) notice(msg);
+    } finally {
+      state.busy = false; $("btn-send").disabled = false; ta.focus();
+    }
+  }
+
+  const QUICK = [
+    ["Mm-hmm", "Mm-hmm."], ["(点头)", "(nods)"], ["(笑)", "(laughs)"], ["Oh, really?", "Oh, really?"],
+    ["Sorry, could you say that again?", "Sorry, could you say that again?"], ["(沉默几秒，在想)", "(stays quiet for a few seconds, thinking)"]
+  ];
+  QUICK.forEach(([label, val]) => { const b = el("button", null, label); b.type = "button"; b.addEventListener("click", () => send(val)); $("quick").appendChild(b); });
+  $("notes-toggle").checked = store.get("cc.notes") !== "off";
+  const applyNotes = () => { $("chat").classList.toggle("notes-off", !$("notes-toggle").checked); store.set("cc.notes", $("notes-toggle").checked ? "on" : "off"); };
+  $("notes-toggle").addEventListener("change", applyNotes); applyNotes();
+
+  function feedbackPrompt(rec) {
+    return [
+      "你是一位帮助在澳洲墨尔本求职的中文母语者练习英文 networking 的教练。下面是一次模拟 coffee chat 的完整记录（求职者 vs. 一位从业者）。请用简体中文给出具体、坦诚、可执行的点评。",
+      "",
+      "对方角色：" + rec.personaName + "，" + rec.personaTitle + "（" + rec.personaOrg + "），状态：" + rec.difficultyZh,
+      "计划时长：" + rec.plannedMinutes + " 分钟，实际约 " + rec.minutes + " 分钟",
+      "求职者背景：" + (rec.background || "未填写"),
+      "这次练习重点：" + (rec.focusZh || "综合练习"),
+      "求职者这次想练：" + (rec.goal || "未填写"),
+      "求职者自己觉得说话目的性太强、像在索取信息，想练得更自然、更有'人味'，所以请特别留意：是否连珠炮式提问、是否接住对方分享的内容、是否有闲聊和自我分享、是否太早把话题拉回找工作。",
+      "",
+      "评分参考：开场与自我介绍是否清楚自然；问题是否具体、有研究、按重要性排序、会追问；是否倾听并回应对方的话（包括对方的小反应和语气）；回复长短和节奏是否自然；是否过早直接要工作或内推；英文是否自然得体；是否尊重时间并礼貌收尾、要到下一步（推荐其他人 / 保持联系）。只有一两轮的短对话要如实指出信息不足，分数相应偏低。",
+      "",
+      "对话记录（括号里是对方的动作；[engagement] 是对方当时的投入度 0-100；[replied after Ns] 是求职者的回复间隔和字数）：",
+      transcriptText(rec.turns, "求职者", rec.personaName, true),
+      "",
+      "只输出一个 JSON 对象，不要任何其他文字，结构如下：",
+      '{"score": 1到10的整数, "summary": "一两句总评", "opening": "对开场和自我介绍的点评", "goodQuestions": ["问得好的问题原文或概括，附一句为什么好"], "weakQuestions": [{"q": "原问题", "why": "问题在哪", "better": "更好的英文问法"}], "english": [{"original": "求职者原句", "better": "更地道的英文说法", "note": "简短中文说明"}], "closing": "对收尾的点评", "nextStepSecured": true或false, "humanTouch": {"score": 1到10的整数（越高越自然、越不功利）, "comment": "一两句：整体听起来像聊天还是像采访/索取", "rewrites": [{"original": "求职者听起来目的性强的原句", "softer": "更自然、有人味的英文说法", "note": "为什么这样更好"}]}, "moments": [{"quote": "那一刻求职者或对方说的原话（简短）", "shift": "对方投入度怎么变了，如 45→60", "why": "为什么会这样，下次怎么做（中文）"}], "tips": ["下次最该改的3条，每条具体可执行"]}',
+      "moments 挑 2-4 个对方投入度明显上升或下降、或者错过了对方暗示（比如对方看手机、敷衍回答、主动反问）的关键瞬间。",
+      "english 最多挑 5 句最值得改的；没有就给空数组。"
+    ].join("\n");
+  }
+
+  async function makeFeedback(rec) {
+    const sample = await getSample();
+    if (!sample) throw { code: "unavailable" };
+    const fb = await sample.json(feedbackPrompt(rec), { modelTier: "complex", cache: false });
+    if (!fb || typeof fb !== "object") throw { code: "invalid_json" };
+    fb.score = Math.max(1, Math.min(10, Math.round(Number(fb.score) || 0))) || null;
+    return fb;
+  }
+
+  function renderFeedback(container, fb) {
+    container.replaceChildren();
+    const wrap = el("div", "fb");
+    const sr = el("div", "score-row");
+    const sc = el("div", "score"); sc.append(String(fb.score ?? "—"), el("small", null, " / 10"));
+    const sum = el("div"); sum.style.minWidth = "0"; sum.style.flex = "1 1 240px";
+    sum.append(el("p", null, fb.summary || ""));
+    const chip = el("span", "chip " + (fb.nextStepSecured ? "ok" : "no"), fb.nextStepSecured ? "要到了下一步" : "还没要到下一步");
+    sum.append(chip);
+    sr.append(sc, sum); wrap.appendChild(sr);
+    const sec = (title, body) => { const s = el("section"); s.append(el("h3", null, title)); if (typeof body === "string") s.append(el("p", null, body)); else s.append(body); wrap.appendChild(s); };
+    const list = (arr) => { const ul = el("ul"); (arr || []).forEach((x) => ul.appendChild(el("li", null, typeof x === "string" ? x : JSON.stringify(x)))); return ul; };
+    if (fb.tips?.length) sec("下次最该改的", list(fb.tips));
+    if (fb.humanTouch && (fb.humanTouch.comment || fb.humanTouch.rewrites?.length)) {
+      const h = fb.humanTouch, box = el("div"); box.style.display = "grid"; box.style.gap = "8px";
+      const top = el("div", "row"); top.append(el("span", "chip ok", "聊天感 " + (h.score ?? "—") + " / 10"), el("span", null, h.comment || "")); box.appendChild(top);
+      (h.rewrites || []).forEach((w) => { const f = el("div", "fix"); f.append(el("span", "from", w.original || ""), el("span", "to", w.softer || ""), el("span", "why", w.note || "")); box.appendChild(f); });
+      sec("目的性 vs 聊天感", box);
+    }
+    if (fb.moments?.length) {
+      const box = el("div"); box.style.display = "grid"; box.style.gap = "8px";
+      fb.moments.forEach((w) => { const f = el("div", "fix"); f.append(el("span", "to", "“" + (w.quote || "") + "”"), el("span", "chip", w.shift || ""), el("span", "why", w.why || "")); f.querySelector(".chip").style.justifySelf = "start"; box.appendChild(f); });
+      sec("关键瞬间", box);
+    }
+    if (fb.opening) sec("开场", fb.opening);
+    if (fb.goodQuestions?.length) sec("问得好的", list(fb.goodQuestions));
+    if (fb.weakQuestions?.length) {
+      const box = el("div"); box.style.display = "grid"; box.style.gap = "8px";
+      fb.weakQuestions.forEach((w) => { const f = el("div", "fix"); f.append(el("span", "from", w.q || ""), el("span", "to", w.better || ""), el("span", "why", w.why || "")); box.appendChild(f); });
+      sec("可以问得更好的", box);
+    }
+    if (fb.english?.length) {
+      const box = el("div"); box.style.display = "grid"; box.style.gap = "8px";
+      fb.english.forEach((w) => { const f = el("div", "fix"); f.append(el("span", "from", w.original || ""), el("span", "to", w.better || ""), el("span", "why", w.note || "")); box.appendChild(f); });
+      sec("英文表达", box);
+    }
+    if (fb.closing) sec("收尾", fb.closing);
+    container.appendChild(wrap);
+  }
+
+  // ---------- Records (db) ----------
+  const rec = { db: null, uid: null, items: [], unsub: null, ready: false, selected: null };
+  async function initDb() {
+    try {
+      const [db, user] = await Promise.all([window.claude?.use?.("db"), window.claude?.use?.("user")]);
+      if (!db || !user) { rec.ready = true; renderHistory(); return; }
+      rec.db = db; rec.uid = await user.id();
+      rec.unsub = db.collection("data/users/" + rec.uid + "/sessions").orderBy("createdAt", "desc").limit(200)
+        .onSnapshot((snap) => { rec.items = snap.docs.map((d) => ({ id: d.id, ...d.data() })); rec.ready = true; renderHistory(); },
+          () => { rec.ready = true; renderHistory(); });
+    } catch { rec.ready = true; renderHistory(); }
+  }
+  const col = () => rec.db.collection("data/users/" + rec.uid + "/sessions");
+
+  async function saveRecord(r) {
+    if (!rec.db) return null;
+    try { const ref = await col().add(r); return ref.id; } catch { return null; }
+  }
+
+  // ---------- Flow ----------
+  $("btn-start").addEventListener("click", async () => {
+    state.persona = personaById(personaSel.value);
+    state.diff = diffById(radio("difficulty"));
+    state.minutes = Number(radio("duration"));
+    state.focus = focusSel.value;
+    state.turns = []; notice("");
+    $("msgs").replaceChildren();
+    renderPersona();
+    let open = state.persona.open;
+    if (state.diff.id === "busy" && !state.persona.setting) open += " Just a heads-up, I've got a hard stop in about " + state.minutes + " minutes.";
+    state.engagement = START_ENGAGEMENT[state.diff.id] ?? 50;
+    setMeter(state.engagement, null);
+    const first = { r: "them", t: open, a: state.persona.act || OPEN_ACTION[state.diff.id] || "", e: state.engagement, n: "", u: "" };
+    state.turns.push(first);
+    addThem(first, false);
+    state.startedAt = Date.now(); state.lastThemAt = Date.now(); tick();
+    clearInterval(state.timer); state.timer = setInterval(tick, 1000);
+    setPhase("chat");
+    $("input").focus();
+    getSample().then((s) => { if (!s) notice("这里无法连接 Claude，对方不能回复。请在 claude.ai 登录后打开这个页面。"); });
+  });
+
+  $("btn-send").addEventListener("click", send);
+  $("input").addEventListener("keydown", (e) => { if (e.key === "Enter" && !e.shiftKey && !e.isComposing) { e.preventDefault(); send(); } });
+
+  $("btn-end").addEventListener("click", async () => {
+    if (state.busy) state.ctrl?.abort();
+    clearInterval(state.timer);
+    const mine = state.turns.filter((t) => t.r === "me").length;
+    setPhase("review");
+    $("btn-end").hidden = true;
+    const p = state.persona;
+    const r = {
+      createdAt: new Date(state.startedAt).toISOString(),
+      personaId: p.id, personaName: p.name, personaTitle: p.title, personaOrg: p.org,
+      difficulty: state.diff.id, difficultyZh: state.diff.zh,
+      plannedMinutes: state.minutes, minutes: Math.max(1, Math.round((Date.now() - state.startedAt) / 60000)),
+      background: $("bg").value.trim(), goal: $("goal").value.trim(),
+      focus: state.focus, focusZh: (FOCUS.find((f) => f.id === state.focus) || FOCUS[0]).zh,
+      turns: state.turns.slice(), feedback: null, score: null
+    };
+    const m = $("msgs");
+    const fbBox = el("div", "panel"); fbBox.style.alignSelf = "stretch";
+    fbBox.append(el("p", "muted", mine ? "正在生成点评，大约需要 20–40 秒…" : "你还没说话，这次不生成点评。"));
+    m.appendChild(fbBox); m.scrollTop = m.scrollHeight;
+    if (mine) {
+      try { r.feedback = await makeFeedback(r); r.score = r.feedback.score; renderFeedback(fbBox, r.feedback); }
+      catch (e) { fbBox.replaceChildren(el("p", null, "点评没有生成成功。" + (errText(e) || "") + " 对话已保存，可以在「练习记录」里重新生成。")); }
+      const id = await saveRecord(r);
+      const savedNote = el("p", "hint", id ? "已保存到练习记录。" : (rec.db ? "保存失败，请检查网络。" : "当前无法保存记录（需要在 claude.ai 登录后打开）。"));
+      fbBox.appendChild(savedNote);
+      if (id) rec.selected = id;
+      m.scrollTop = m.scrollHeight;
+    }
+    setPhase("done");
+  });
+
+  $("btn-again").addEventListener("click", () => { setPhase("setup"); $("meter").hidden = true; state.turns = []; $("clock").textContent = "00:00"; $("clock").classList.remove("over"); notice(""); renderEmpty(); renderPersona(); });
+  $("btn-to-history").addEventListener("click", () => showTab("history"));
+
+  // ---------- Tabs ----------
+  function showTab(which) {
+    const h = which === "history";
+    $("tab-practice").setAttribute("aria-selected", String(!h));
+    $("tab-history").setAttribute("aria-selected", String(h));
+    $("view-practice").hidden = h; $("view-history").hidden = !h;
+    store.set("cc.tab", which);
+    if (h) renderHistory();
+  }
+  $("tab-practice").addEventListener("click", () => showTab("practice"));
+  $("tab-history").addEventListener("click", () => showTab("history"));
+
+  // ---------- History rendering ----------
+  function renderHistory() {
+    const items = rec.items;
+    const scored = items.filter((i) => typeof i.score === "number");
+    $("st-count").textContent = String(items.length);
+    const avg = (arr) => arr.length ? (arr.reduce((a, b) => a + b.score, 0) / arr.length).toFixed(1) : "—";
+    $("st-avg").textContent = avg(scored);
+    $("st-recent").textContent = avg(scored.slice(0, 3));
+    $("st-min").textContent = items.reduce((a, b) => a + (b.minutes || 0), 0) + " 分钟";
+    renderTrend(scored.slice().reverse());
+
+    const list = $("hist-list"); list.replaceChildren();
+    if (!rec.ready) { list.appendChild(el("p", "muted", "正在读取记录…")); }
+    else if (!rec.db) { list.appendChild(el("p", "muted", "需要在 claude.ai 登录后打开这个页面才能保存和查看记录。")); }
+    else if (!items.length) { list.appendChild(el("p", "muted", "还没有记录。去「练习」完成一次 coffee chat，结束后会自动存到这里。")); }
+    items.forEach((it) => {
+      const b = el("button", "hitem"); b.type = "button";
+      b.setAttribute("aria-current", String(it.id === rec.selected));
+      b.append(el("span", "t", it.personaName + " · " + it.personaTitle),
+        el("span", "s", typeof it.score === "number" ? String(it.score) : "—"),
+        el("span", "d", fmtDate(it.createdAt) + " · " + (it.difficultyZh || "") + " · " + (it.minutes || "?") + " 分钟"));
+      b.addEventListener("click", () => { rec.selected = it.id; renderHistory(); });
+      list.appendChild(b);
+    });
+    if (!rec.selected || !items.some((i) => i.id === rec.selected)) rec.selected = items[0]?.id || null;
+    renderDetail(items.find((i) => i.id === rec.selected));
+  }
+
+  function renderTrend(arr) {
+    const svg = $("trend-svg"); svg.replaceChildren();
+    const NS = "http://www.w3.org/2000/svg";
+    const mk = (t, a) => { const n = document.createElementNS(NS, t); for (const k in a) n.setAttribute(k, a[k]); svg.appendChild(n); return n; };
+    const W = 600, H = 120, pl = 24, pr = 10, pt = 10, pb = 14;
+    const y = (s) => pt + (10 - s) / 9 * (H - pt - pb);
+    [1, 5, 10].forEach((s) => {
+      mk("line", { x1: pl, x2: W - pr, y1: y(s), y2: y(s), stroke: "var(--line)", "stroke-width": 1, "vector-effect": "non-scaling-stroke" });
+      const t = mk("text", { x: 0, y: y(s) + 4, fill: "var(--muted)", "font-size": 10, "font-family": "IBM Plex Mono, monospace" }); t.textContent = String(s);
+    });
+    if (!arr.length) { const t = mk("text", { x: W / 2, y: H / 2, fill: "var(--muted)", "font-size": 12, "text-anchor": "middle" }); t.textContent = "完成练习后这里会显示分数变化"; return; }
+    const x = (i) => arr.length === 1 ? (pl + W - pr) / 2 : pl + i * (W - pl - pr) / (arr.length - 1);
+    const pts = arr.map((r, i) => x(i) + "," + y(r.score)).join(" ");
+    if (arr.length > 1) {
+      mk("polygon", { points: x(0) + "," + y(1) + " " + pts + " " + x(arr.length - 1) + "," + y(1), fill: "var(--accent-soft)", opacity: 0.6 });
+      mk("polyline", { points: pts, fill: "none", stroke: "var(--accent)", "stroke-width": 2, "vector-effect": "non-scaling-stroke" });
+    }
+    arr.forEach((r, i) => mk("circle", { cx: x(i), cy: y(r.score), r: i === arr.length - 1 ? 4 : 2.5, fill: "var(--accent)" }));
+  }
+
+  function renderDetail(it) {
+    const d = $("hist-detail"); d.replaceChildren();
+    if (!it) { d.append(el("h2", null, "练习详情"), el("p", "muted", "选一条记录，查看完整对话和点评。")); return; }
+    const head = el("div", "row"); head.style.justifyContent = "space-between";
+    const ht = el("div"); ht.append(el("h2", null, it.personaName + " · " + it.personaTitle), el("p", "muted", fmtDate(it.createdAt) + " · " + (it.difficultyZh || "") + " · 计划 " + it.plannedMinutes + " 分钟，实际 " + it.minutes + " 分钟"));
+    const del = el("button", "btn danger", "删除"); del.type = "button";
+    head.append(ht, del); d.appendChild(head);
+    const confirmBox = el("div", "confirm"); confirmBox.hidden = true;
+    const yes = el("button", "btn danger", "确认删除"), no = el("button", "btn", "取消");
+    confirmBox.append(el("span", null, "删除后无法恢复。"), yes, no); d.appendChild(confirmBox);
+    del.addEventListener("click", () => { confirmBox.hidden = false; });
+    no.addEventListener("click", () => { confirmBox.hidden = true; });
+    yes.addEventListener("click", async () => { yes.disabled = true; try { await col().doc(it.id).delete(); rec.selected = null; } catch { yes.disabled = false; confirmBox.firstChild.textContent = "删除失败，请重试。"; } });
+    if (it.focusZh) d.appendChild(el("p", null, "练习重点：" + it.focusZh));
+    if (it.goal) d.appendChild(el("p", null, "这次想练：" + it.goal));
+
+    const fbBox = el("div");
+    if (it.feedback) renderFeedback(fbBox, it.feedback);
+    else {
+      const regen = el("button", "btn primary", "生成点评"); regen.type = "button";
+      const note = el("p", "muted", "这次练习还没有点评。");
+      fbBox.append(note, regen);
+      regen.addEventListener("click", async () => {
+        regen.disabled = true; note.textContent = "正在生成点评，大约需要 20–40 秒…";
+        try { const fb = await makeFeedback(it); await col().doc(it.id).update({ feedback: fb, score: fb.score }); }
+        catch (e) { regen.disabled = false; note.textContent = "没有生成成功。" + (errText(e) || ""); }
+      });
+    }
+    d.appendChild(fbBox);
+    const tr = el("details"); tr.append(el("summary", null, "完整对话（" + (it.turns?.length || 0) + " 句）"));
+    const box = el("div", "transcript");
+    (it.turns || []).forEach((t) => {
+      const p = el("p");
+      p.append(el("b", null, t.r === "me" ? "YOU" : (it.personaName || "THEM").toUpperCase()));
+      if (t.a) p.append(el("span", "act", "(" + t.a + ") "));
+      p.append(document.createTextNode(t.t));
+      if (t.r === "them" && t.e != null) p.append(el("span", "act", " · 投入度 " + t.e));
+      box.appendChild(p);
+      if (t.u || t.n) { const nb = el("div", "note"); if (t.u) { const s = el("span"); s.append(el("b", null, "你刚才"), document.createTextNode(t.u)); nb.appendChild(s); } if (t.n) { const s = el("span"); s.append(el("b", null, "对方"), document.createTextNode(t.n)); nb.appendChild(s); } box.appendChild(nb); }
+    });
+    tr.appendChild(box); d.appendChild(tr);
+  }
+
+  // ---------- Boot ----------
+  setPhase("setup");
+  renderEmpty();
+  renderPersona();
+  renderHistory();
+  if (store.get("cc.tab") === "history") showTab("history");
+  initDb();
+})();
+</script>
