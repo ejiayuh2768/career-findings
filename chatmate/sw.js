@@ -1,5 +1,5 @@
 // Caches the app shell so it opens offline; AI requests always go to the network.
-const CACHE = "chatmate-v1";
+const CACHE = "chatmate-v3";
 const SHELL = ["./", "index.html", "manifest.webmanifest", "icon-192.png", "icon-512.png", "apple-touch-icon.png"];
 
 self.addEventListener("install", (e) => {

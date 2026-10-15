@@ -294,7 +294,8 @@ const AVATAR_COLORS = ["#D2603A", "#2E7D6B", "#B0478A", "#6A5ACD", "#B7791F", "#
 
 const PROVIDERS = {
   gemini: { label: "Google Gemini（有免费额度，推荐）", model: "gemini-flash-latest", keyUrl: "https://aistudio.google.com/apikey" },
-  deepseek: { label: "DeepSeek（很便宜）", model: "deepseek-chat", base: "https://api.deepseek.com", keyUrl: "https://platform.deepseek.com/api_keys" },
+  zhipu: { label: "智谱 GLM-4-Flash（免费，国内网络可用）", model: "glm-4-flash", base: "https://open.bigmodel.cn/api/paas/v4", keyUrl: "https://open.bigmodel.cn/usercenter/apikeys" },
+  deepseek: { label: "DeepSeek（需充值）", model: "deepseek-chat", base: "https://api.deepseek.com", keyUrl: "https://platform.deepseek.com/api_keys" },
   openai: { label: "OpenAI", model: "gpt-5-mini", base: "https://api.openai.com/v1", keyUrl: "https://platform.openai.com/api-keys" },
   anthropic: { label: "Anthropic Claude API", model: "claude-haiku-5-5", keyUrl: "https://console.anthropic.com/settings/keys" },
   custom: { label: "其他（OpenAI 兼容接口）", model: "", base: "" }
@@ -528,7 +529,21 @@ function normalizeTurns(turns) {
 }
 
 async function ai(system, turns, opts = {}) {
-  const s = settings;
+  if (!settings.key) throw { code: "nokey" };
+  try {
+    return await callProvider(settings, system, turns, opts);
+  } catch (e) {
+    const b = settings.backup;
+    const unreachable = e && (e.code === "network" || e.code === "region");
+    if (!unreachable || !b || !b.key || opts.noBackup) throw e;
+    const r = await callProvider(b, system, turns, opts);
+    if (!usedBackupNotice) { usedBackupNotice = true; toast(`主 AI 连不上，已自动改用备用的 ${PROVIDERS[b.provider].label.replace(/（.*）/, "")}。`); }
+    return r;
+  }
+}
+let usedBackupNotice = false;
+
+async function callProvider(s, system, turns, opts = {}) {
   if (!s.key) throw { code: "nokey" };
   const p = PROVIDERS[s.provider] || PROVIDERS.gemini;
   const model = (s.model || p.model || "").trim();
@@ -568,6 +583,7 @@ async function ai(system, turns, opts = {}) {
     if (res.status === 401 || res.status === 403) throw { code: "auth", detail };
     if (res.status === 429) throw { code: "rate", detail };
     if (res.status === 404) throw { code: "model", detail };
+    if (/location is not supported|not available in your (country|region)|unsupported_country/i.test(String(detail))) throw { code: "region", detail };
     throw { code: "http", status: res.status, detail };
   }
   let text = "";
@@ -603,7 +619,10 @@ function errText(e) {
     case "auth": return "API Key 不对或没有权限，去设置里检查一下。" + d;
     case "rate": return "请求太频繁或免费额度用完了，等一会儿再试。" + d;
     case "model": return "找不到这个模型，去设置里检查模型名称。" + d;
-    case "network": return "连不上 AI 服务。检查网络；如果用的是「其他」接口，它可能不允许浏览器直接访问。";
+    case "network": return settings.backup && settings.backup.key
+      ? "主 AI 和备用 AI 都连不上，检查一下网络。"
+      : "连不上 AI 服务。如果用 Wi‑Fi 能用、用流量不行，说明你的流量网络连不上这家 AI。去设置里加一个「备用 AI」（推荐免费的智谱 GLM-4-Flash），连不上时会自动切换。";
+    case "region": return "这家 AI 不支持你当前网络所在的地区。去设置里加一个「备用 AI」（推荐免费的智谱 GLM-4-Flash）。";
     case "empty": return "AI 没有返回内容，再试一次。";
     case "invalid_json": return "AI 返回的格式不对，再点一次试试。";
     default: return "出错了" + (e && e.status ? " " + e.status : "") + d;
@@ -985,73 +1004,101 @@ $("reviewBtn").addEventListener("click", () => {
 });
 
 /* ================= settings ================= */
+function providerFields(prefix, cfg, allowNone) {
+  const wrap = el("div", "list");
+  const f1 = el("div", "field");
+  const l1 = el("label", null, "AI 服务"); l1.htmlFor = prefix + "provider";
+  const sel = el("select"); sel.id = prefix + "provider";
+  if (allowNone) { const o = el("option", null, "不使用备用"); o.value = ""; sel.append(o); }
+  for (const [k, p] of Object.entries(PROVIDERS)) { const o = el("option", null, p.label); o.value = k; sel.append(o); }
+  sel.value = (cfg && cfg.key && cfg.provider) || (allowNone ? "" : "gemini");
+
+  const f2 = el("div", "field");
+  const l2 = el("label", null, "API Key"); l2.htmlFor = prefix + "apikey";
+  const key = el("input"); key.id = prefix + "apikey"; key.type = "password"; key.autocomplete = "off"; key.value = (cfg && cfg.key) || "";
+  const keyHelp = el("small");
+  f2.append(l2, key, keyHelp);
+
+  const f3 = el("div", "field");
+  const l3 = el("label", null, "模型（一般不用改）"); l3.htmlFor = prefix + "model";
+  const model = el("input"); model.id = prefix + "model"; model.autocomplete = "off"; model.value = (cfg && cfg.model) || "";
+  f3.append(l3, model);
+
+  const f4 = el("div", "field");
+  const l4 = el("label", null, "接口地址（Base URL）"); l4.htmlFor = prefix + "base";
+  const base = el("input"); base.id = prefix + "base"; base.autocomplete = "off"; base.placeholder = "https://…/v1"; base.value = (cfg && cfg.base) || "";
+  f4.append(l4, base, el("small", null, "填到 /chat/completions 之前的部分。"));
+
+  function sync() {
+    const none = !sel.value;
+    f2.hidden = f3.hidden = none;
+    const p = PROVIDERS[sel.value];
+    f4.hidden = none || sel.value !== "custom";
+    if (none) return;
+    model.placeholder = p.model || "模型名称";
+    keyHelp.textContent = "";
+    if (p.keyUrl) {
+      keyHelp.append("在这里申请：");
+      const a = el("a", null, p.keyUrl.replace(/^https:\/\//, "")); a.href = p.keyUrl; a.target = "_blank"; a.rel = "noopener";
+      keyHelp.append(a);
+      if (sel.value === "gemini") keyHelp.append("（用 Google 账号登录，点 Create API key，复制粘贴到这里）");
+      if (sel.value === "deepseek") keyHelp.append("（注册后先充值少量金额，再创建 API key）");
+      if (sel.value === "zhipu") keyHelp.append("（用手机号注册登录，点「添加新的 API Key」，复制粘贴到这里。GLM-4-Flash 免费）");
+    }
+  }
+  sel.addEventListener("change", () => { model.value = ""; sync(); });
+  sync();
+  f1.append(l1, sel);
+  wrap.append(f1, f2, f3, f4);
+  const read = () => sel.value ? { provider: sel.value, key: key.value.trim(), model: model.value.trim(), base: base.value.trim() } : null;
+  return { wrap, read };
+}
+
 function openSettings() {
   openSheet((s) => {
     s.append(head("设置 AI"));
     s.append(el("p", "empty", "这个 App 本身免费，聊天需要连接一个 AI 服务。API Key 只保存在这台手机的浏览器里，不会发给任何其他地方。"));
 
-    const f1 = el("div", "field");
-    const l1 = el("label", null, "AI 服务"); l1.htmlFor = "provider";
-    const sel = el("select"); sel.id = "provider";
-    for (const [k, p] of Object.entries(PROVIDERS)) { const o = el("option", null, p.label); o.value = k; sel.append(o); }
-    sel.value = settings.provider;
-    f1.append(l1, sel);
+    s.append(el("h3", null, "主 AI"));
+    const main = providerFields("m-", settings, false);
+    s.append(main.wrap);
 
-    const f2 = el("div", "field");
-    const l2 = el("label", null, "API Key"); l2.htmlFor = "apikey";
-    const key = el("input"); key.id = "apikey"; key.type = "password"; key.autocomplete = "off"; key.value = settings.key || "";
-    const keyHelp = el("small");
-    f2.append(l2, key, keyHelp);
-
-    const f3 = el("div", "field");
-    const l3 = el("label", null, "模型（一般不用改）"); l3.htmlFor = "model";
-    const model = el("input"); model.id = "model"; model.autocomplete = "off"; model.value = settings.model || "";
-    f3.append(l3, model);
-
-    const f4 = el("div", "field");
-    const l4 = el("label", null, "接口地址（Base URL）"); l4.htmlFor = "base";
-    const base = el("input"); base.id = "base"; base.autocomplete = "off"; base.placeholder = "https://…/v1"; base.value = settings.base || "";
-    f4.append(l4, base, el("small", null, "填到 /chat/completions 之前的部分。"));
-
-    function sync() {
-      const p = PROVIDERS[sel.value];
-      model.placeholder = p.model || "模型名称";
-      f4.hidden = sel.value !== "custom";
-      keyHelp.textContent = "";
-      if (p.keyUrl) {
-        keyHelp.append("在这里免费申请：");
-        const a = el("a", null, p.keyUrl.replace(/^https:\/\//, "")); a.href = p.keyUrl; a.target = "_blank"; a.rel = "noopener";
-        keyHelp.append(a);
-        if (sel.value === "gemini") keyHelp.append("（用 Google 账号登录，点 Create API key，复制粘贴到这里）");
-      }
-    }
-    sel.addEventListener("change", () => { model.value = ""; sync(); });
-    sync();
+    s.append(el("h3", null, "备用 AI（可选）"));
+    s.append(el("p", "empty", "主 AI 连不上时（比如用流量时连不上 Google），会自动改用这个。推荐「智谱 GLM-4-Flash」，完全免费，国内网络下也能直接用。"));
+    const backup = providerFields("b-", settings.backup, true);
+    s.append(backup.wrap);
 
     const status = el("p", "status");
     const row = el("div", "row");
     const saveBtn = el("button", "primary", "保存并测试");
     row.append(saveBtn);
     saveBtn.addEventListener("click", async () => {
-      settings = { provider: sel.value, key: key.value.trim(), model: model.value.trim(), base: base.value.trim() };
+      const m = main.read();
+      const b = backup.read();
+      settings = { ...m, backup: b && b.key ? b : null };
       store.set("settings", settings);
       render();
-      if (!settings.key) { status.className = "status bad"; status.textContent = "请先填 API Key。"; return; }
+      if (!settings.key) { status.className = "status bad"; status.textContent = "请先填主 AI 的 API Key。"; return; }
       saveBtn.disabled = true;
       status.className = "status";
       status.textContent = "正在测试…";
-      try {
-        const t = await ai("Reply with exactly: OK", [{ role: "user", content: "Say OK." }], { maxTokens: 20 });
-        status.className = "status ok";
-        status.textContent = "连接成功，可以开始聊天了。";
-        if (t) setTimeout(closeSheet, 900);
-      } catch (e) {
-        status.className = "status bad";
-        status.textContent = errText(e);
-      } finally { saveBtn.disabled = false; }
+      const lines = [];
+      let anyOk = false;
+      const test = async (label, cfg) => {
+        try {
+          await callProvider(cfg, "Reply with exactly: OK", [{ role: "user", content: "Say OK." }], { maxTokens: 20 });
+          lines.push(`${label}：连接成功`); anyOk = true;
+        } catch (e) { lines.push(`${label}：${e && e.code === "network" ? "连不上（当前网络访问不了这家 AI）" : errText(e)}`); }
+      };
+      await test("主 AI", settings);
+      if (settings.backup) await test("备用 AI", settings.backup);
+      status.className = "status " + (anyOk ? "ok" : "bad");
+      status.textContent = lines.join("\n");
+      status.style.whiteSpace = "pre-line";
+      saveBtn.disabled = false;
     });
 
-    s.append(f1, f2, f3, f4, row, status);
+    s.append(row, status);
     s.append(el("h3", null, "安装到手机桌面"));
     s.append(el("p", "empty", "iPhone：用 Safari 打开 → 点分享按钮 → 「添加到主屏幕」。安卓：用 Chrome 打开 → 右上角菜单 → 「添加到主屏幕」或「安装应用」。"));
     s.append(el("h3", null, "关于数据"));
