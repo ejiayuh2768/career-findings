@@ -329,7 +329,8 @@ details > div { margin-top: 8px; display: grid; gap: 8px; font-size: 0.9rem; }
             <textarea id="input" placeholder="Hi! Thanks so much for making the time...（动作可以写在括号里，比如 (laughs)）"></textarea>
             <div class="quick" id="quick" aria-label="小反应"></div>
             <div class="row">
-              <span class="hint">🎤 想用说的：点手机键盘上的麦克风键（iPhone 在键盘右下角，安卓在键盘上方），说完检查一下再发送 · Enter 发送</span>
+              <span class="hint" id="dictation-hint">🎤 用说的：点手机键盘上的麦克风键 · Enter 发送</span>
+              <label class="toggle"><input type="checkbox" id="autosend-toggle"> 停顿 2.5 秒自动发送</label>
               <button class="btn primary" id="btn-send">发送</button>
             </div>
           </div>
@@ -1105,8 +1106,31 @@ details > div { margin-top: 8px; display: grid; gap: 8px; font-size: 0.9rem; }
       if (v) { u.voice = v; u.lang = v.lang; } else u.lang = "en-AU";
       const d = state.diff && state.diff.id;
       u.rate = d === "busy" || d === "chatty" ? 1.08 : d === "reserved" || d === "cold" ? 0.92 : 1;
+      // While the other person is talking, block dictation from transcribing the speakers.
+      const ta = $("input"); ta.readOnly = true;
+      const release = () => { ta.readOnly = false; clearTimeout(tts.guard); };
+      clearTimeout(tts.guard); tts.guard = setTimeout(release, 30000);
+      u.onend = release; u.onerror = release;
       speechSynthesis.speak(u);
-    } catch {}
+    } catch { $("input").readOnly = false; }
+  }
+
+  // ---------- Dictation helpers (system voice typing: Win+H / Mac Fn Fn / phone keyboard mic) ----------
+  {
+    const ua = navigator.userAgent || "";
+    const hint = /Mac/.test(ua) && !/iPhone|iPad/.test(ua) ? "🎤 用说的：按两下 Fn 键（或 🌐 键）开始听写，说完点发送或按 Enter"
+      : /Windows/.test(ua) ? "🎤 用说的：按 Win + H 开始语音输入，说完点发送或按 Enter"
+      : "🎤 用说的：点手机键盘上的麦克风键，说完点发送";
+    $("dictation-hint").textContent = hint;
+    const auto = $("autosend-toggle");
+    auto.checked = store.get("cc.autosend") === "on";
+    auto.addEventListener("change", () => { store.set("cc.autosend", auto.checked ? "on" : "off"); $("input").focus(); });
+    let idle = null;
+    $("input").addEventListener("input", () => {
+      clearTimeout(idle);
+      if (!auto.checked) return;
+      idle = setTimeout(() => { if ($("input").value.trim() && !state.busy && state.phase === "chat" && !$("input").readOnly) send(); }, 2500);
+    });
   }
   if (!tts.ok) $("tts-wrap").hidden = true;
   else { try { speechSynthesis.getVoices(); speechSynthesis.onvoiceschanged = () => {}; } catch {} }
