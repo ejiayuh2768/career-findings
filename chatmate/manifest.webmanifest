@@ -1,0 +1,15 @@
+{
+  "name": "Chatmate English",
+  "short_name": "Chatmate",
+  "description": "Practise everyday English by chatting with people who remember you.",
+  "lang": "zh-CN",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#E9EDF2",
+  "theme_color": "#2347C8",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}
