@@ -26,7 +26,10 @@
 都在 `coffee-chat-practice.html` 的 `<script>` 开头：
 
 - `PERSONAS`：角色（名字、职位、背景、开场白）
-- `PROFILES`：每个角色的 LinkedIn 式资料、怎么找到 Ta、发出的联系消息
+- `PROFILES`：固定角色的 LinkedIn 式资料（经历、教育、技能、一条动态）
+- `ROLES`、`ORIGINS`、`STYLES`、`LIFE`、`CONCERNS`：随机生成器用的素材（职位、出身背景、说话风格、生活、最近的烦恼）
+- `CHANNELS`：认识方式（线上 / 线下，约好的 / 当场偶遇），以及对应的联系消息模板
+- `activityFor()`：生成和工作相关的 LinkedIn 动态
 - `DIFFICULTY`：性格（很热心、友好、很忙、慢热、冷淡、话多爱跑题）
 - `FOCUS`：练习重点
 - `QBANK`：问题库
