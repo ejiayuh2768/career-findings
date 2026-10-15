@@ -26,6 +26,7 @@
 都在 `coffee-chat-practice.html` 的 `<script>` 开头：
 
 - `PERSONAS`：角色（名字、职位、背景、开场白）
+- `PROFILES`：每个角色的 LinkedIn 式资料、怎么找到 Ta、发出的联系消息
 - `DIFFICULTY`：性格（很热心、友好、很忙、慢热、冷淡、话多爱跑题）
 - `FOCUS`：练习重点
 - `QBANK`：问题库

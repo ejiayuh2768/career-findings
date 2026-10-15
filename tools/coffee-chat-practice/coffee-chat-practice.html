@@ -69,6 +69,24 @@ textarea { resize: vertical; min-height: 72px; }
 .seg input:focus-visible + span { outline: 2px solid var(--accent); outline-offset: 2px; }
 .persona-card { background: var(--sunk); border-radius: 8px; padding: 10px 12px; font-size: 0.88rem; display: grid; gap: 4px; }
 .persona-card strong { font-family: var(--font-display); font-size: 0.98rem; }
+.persona-card { gap: 8px; padding: 12px; }
+.li-top { display: flex; gap: 10px; align-items: flex-start; }
+.li-avatar { width: 48px; height: 48px; border-radius: 50%; flex: none; display: grid; place-items: center; background: var(--accent); color: var(--accent-ink); font-family: var(--font-display); font-weight: 700; font-size: 1.2rem; }
+.li-id { display: grid; gap: 2px; min-width: 0; }
+.li-id strong { font-size: 1.05rem; }
+.li-head { font-size: 0.84rem; line-height: 1.45; }
+.li-id .muted { font-size: 0.78rem; }
+.li-zh { font-size: 0.84rem; color: var(--muted); }
+.li-sec { border-top: 1px solid var(--line); padding-top: 8px; }
+.li-sec:first-of-type { border-top: 1px solid var(--line); padding-top: 8px; }
+.li-sec summary { font-size: 0.9rem; }
+.li-sec > div { margin-top: 6px; display: grid; gap: 6px; font-size: 0.85rem; }
+.li-sec .chip { justify-self: start; }
+.li-msg { margin: 0; padding: 8px 10px; background: var(--surface); border-left: 3px solid var(--accent); border-radius: 4px; font-size: 0.84rem; font-style: italic; }
+.li-hooks { margin: 0; padding-left: 1.2em; display: grid; gap: 2px; }
+.li-item { display: grid; gap: 0; padding-bottom: 6px; border-bottom: 1px dashed var(--line); }
+.li-item:last-child { border-bottom: 0; }
+.li-item .mono { font-size: 0.78rem; }
 
 .btn { border: 1px solid var(--line); background: var(--surface); border-radius: 8px; padding: 8px 14px; font-weight: 500; }
 .btn:hover { border-color: var(--muted); }
@@ -235,6 +253,21 @@ details > div { margin-top: 8px; display: grid; gap: 8px; font-size: 0.9rem; }
           <div id="qbank"></div>
         </details>
         <details>
+          <summary>现实中怎么找到这类人</summary>
+          <div>
+            <ul class="qlist">
+              <li><span class="en">LinkedIn 搜索</span><span class="zh">搜职位关键词 + Melbourne（如 "clinical data analyst" Melbourne），筛"二度人脉"；再用"学校"筛选找校友，校友回复率最高</span></li>
+              <li><span class="en">看对方最近的动态</span><span class="zh">找一条 Ta 最近发的帖子、论文或演讲，联系时具体提一句，比"我想了解行业"有效得多</span></li>
+              <li><span class="en">大学和医院官网</span><span class="zh">研究岗看学院的 staff 页面和项目页面；教授更常看邮件，联系教授发邮件比 LinkedIn 好</span></li>
+              <li><span class="en">线下活动</span><span class="zh">健康数据 / 健康信息学 meetup、大学公开讲座、行业会议的茶歇时间；讲者会后最好搭话</span></li>
+              <li><span class="en">留学生和校友圈</span><span class="zh">校友群、学校 careers 的 mentoring 项目；已经找到工作的学长学姐最能理解你</span></li>
+              <li><span class="en">请人介绍</span><span class="zh">朋友、同学、志愿活动认识的人帮忙介绍，熟人介绍比陌生联系的回复率高很多</span></li>
+              <li><span class="en">联系消息怎么写</span><span class="zh">300 字符以内：你是谁 + 为什么找 Ta（具体到某条帖子或经历）+ 请求 15–20 分钟 + 一句"忙的话完全理解"。每张资料卡里都有一条示例</span></li>
+              <li><span class="en">没回复怎么办</span><span class="zh">一周后可以礼貌跟进一次，之后就不要再追；同时多联系几个人</span></li>
+            </ul>
+          </div>
+        </details>
+        <details>
           <summary>注意事项</summary>
           <div>
             <ul class="qlist">
@@ -371,6 +404,151 @@ details > div { margin-top: 8px; display: grid; gap: 8px; font-size: 0.9rem; }
     { id: "cold", zh: "冷淡", en: "Cool and a bit detached. Minimal answers, little eye contact, doesn't ask questions back, lets silences sit. Not rude, just hard to warm up. Only genuine curiosity, humour or a real shared interest thaws them, and they cool further at anything that feels transactional." },
     { id: "chatty", zh: "话多爱跑题", en: "Talkative and goes off on tangents (weekend plans, footy, a funny story from work). Friendly, but the job seeker must enjoy the tangent first and then gently steer back without sounding abrupt." }
   ];
+  // LinkedIn-style profiles (fictional) + how the job seeker found and contacted each person.
+  const PROFILES = {
+    cda: { headline: "Clinical Data Analyst | SQL Server · Power BI · Epic reporting | Turning hospital data into decisions", conn: "500+",
+      about: "I help clinicians and managers get the numbers they need, from ED wait times to elective surgery reporting. MPH by training, started on a graduate program. Always happy to chat with people starting out in health data.",
+      exp: [["Clinical Data Analyst", "大型公立医疗服务机构 · 全职", "2023.03 – 至今", "Epic 报表、急诊和手术室的 Power BI 看板、向卫生部报送数据"],
+            ["Graduate Data Analyst", "同一机构 · Graduate Program", "2022.02 – 2023.03", "写 SQL 脚本、SSRS 报表、数据质量检查"],
+            ["Research Intern", "大学公共卫生学院", "2021", "用 R 清洗问卷数据"]],
+      edu: [["Master of Public Health（生物统计方向）", "墨尔本一所大学", "2020 – 2021"], ["Bachelor of Biomedical Science", "墨尔本一所大学", "2016 – 2019"]],
+      skills: ["SQL Server", "Power BI", "SSRS", "Epic Clarity", "R", "Data quality"],
+      activity: "2 周前发帖：\"Finally migrated our last SSRS report to Power BI 🎉 Anyone else still fighting with legacy reports?\"",
+      found: { via: "LinkedIn 搜索", how: "在 LinkedIn 搜 \"clinical data analyst\" + Melbourne，筛选二度人脉，发现你们是同一个 MPH 项目的校友。",
+        msg: "Hi Priya, I'm a recent MPH grad exploring health data roles in Melbourne. I loved your post about finally moving off SSRS! Would you be open to a 15–20 minute coffee sometime? I'd really like to hear how you got started. Totally understand if you're busy." },
+      hooks: ["她刚发帖庆祝把最后一个 SSRS 报表迁到 Power BI", "你们是同一个 MPH 项目的校友", "她是从 graduate program 入行的"] },
+    ra: { headline: "Research Assistant, Population Health | Systematic reviews · R · Stata", conn: "312",
+      about: "Working on an NHMRC-funded project on chronic disease prevention. Interested in evidence synthesis, maybe a PhD down the track. Runner, terrible cook.",
+      exp: [["Research Assistant", "大学人口与全球健康学院 · 定期合同", "2024.07 – 至今", "系统综述的筛选和数据提取、队列数据清洗、R/Stata 分析"],
+            ["Research Volunteer", "同一学院", "2024.02 – 2024.06", "读硕士期间在一个 scoping review 项目做志愿者"],
+            ["Casual Tutor, Epidemiology", "同一大学", "2023 – 2024", "带本科流行病学辅导课"]],
+      edu: [["Master of Epidemiology", "墨尔本一所大学", "2022 – 2023"], ["Bachelor of Science（Psychology）", "墨尔本一所大学", "2018 – 2021"]],
+      skills: ["R", "Stata", "Covidence", "Systematic reviews", "Meta-analysis"],
+      activity: "上周分享论文：\"Our scoping review on digital interventions for type 2 diabetes is out! My first co-authorship.\"",
+      found: { via: "大学官网 + LinkedIn", how: "在学院官网的项目页面看到他的名字，再去 LinkedIn 找到他，正好看到他刚发表第一篇共同作者论文。",
+        msg: "Hi Tom, congrats on the scoping review! I read it and found the part on app engagement really interesting. I'm an epidemiology graduate hoping to get into research assistant work. Would you be open to a quick coffee sometime? Happy to work around your schedule." },
+      hooks: ["他刚发表第一篇共同作者论文", "他是从志愿者做起的", "他喜欢跑步"] },
+    ctc: { headline: "Clinical Trial Coordinator, Oncology | ICH-GCP certified | Patient-centred research", conn: "500+",
+      about: "Coordinating oncology trials from start-up to close-out. I started as a CTA on a 6-month contract, so happy to share what I learned along the way.",
+      exp: [["Clinical Trial Coordinator", "医院肿瘤临床研究部门", "2024.01 – 至今", "患者筛选和招募、CRF/EDC、伦理和治理申请、对接监查访视"],
+            ["Clinical Trial Assistant", "同一部门 · 6 个月合同后续签", "2022.07 – 2023.12", "研究文件夹、实验室样本盒、排期、数据录入"],
+            ["Pharmacy Assistant", "社区药房 · 兼职", "2019 – 2022", ""]],
+      edu: [["Bachelor of Biomedical Science", "墨尔本一所大学", "2016 – 2019"], ["ICH-GCP 证书", "线上课程", "2022"]],
+      skills: ["ICH-GCP", "REDCap", "Medidata Rave", "Ethics submissions", "Patient recruitment"],
+      activity: "在国际临床试验日的帖子下评论：\"Shout-out to every CTA keeping the site files alive 🙌\"",
+      found: { via: "LinkedIn 群组", how: "在 LinkedIn 一个临床研究从业者群组里看到她的评论，觉得很有意思，就加了她。",
+        msg: "Hi Mei, your comment about CTAs on Clinical Trials Day made me smile! I'm a biomedical science grad looking at CTA roles and I've just finished my GCP course. Would you have 15 minutes for a coffee or a call sometime? No pressure at all." },
+      hooks: ["她从 6 个月合同的 CTA 做起", "她以前在药房兼职", "她在临床试验日的那条评论"] },
+    doh: { headline: "Senior Data Analyst, Victorian public sector health | SQL · Databricks · Power BI", conn: "500+",
+      about: "Supporting policy and performance teams with state health datasets. Ex-retail analytics. Data quality nerd.",
+      exp: [["Senior Data Analyst", "维州政府卫生部门", "2023 – 至今", "支持政策团队和医院绩效报告，Databricks 数据管道"],
+            ["Data Analyst", "同一部门", "2021 – 2023", ""],
+            ["Analyst", "一家零售数据分析公司", "2017 – 2021", "客户分析和销售预测"]],
+      edu: [["Bachelor of Commerce（Econometrics）", "墨尔本一所大学", "2013 – 2016"]],
+      skills: ["SQL", "Azure Databricks", "Power BI", "Python", "Data governance", "Stakeholder management"],
+      activity: "上周在公共部门数据 meetup 做分享：\"Why data quality is a people problem, not a tech problem\"",
+      found: { via: "Meetup 演讲后", how: "你去听了他在公共部门数据 meetup 的分享，会后在 LinkedIn 加了他，附言提到他的演讲。",
+        msg: "Hi James, I really enjoyed your talk last week on data quality being a people problem, especially the bit about who owns the fix. I'm an analytics grad interested in public health data. Would you be open to a 20-minute coffee? I'd love to hear about your move from retail to health." },
+      hooks: ["他上周讲了\"数据质量是人的问题\"", "他从零售行业转过来", "政府岗位通常要求公民或 PR"] },
+    cra: { headline: "Clinical Research Associate II | Oncology & Rare Disease | Site monitoring VIC/TAS", conn: "500+",
+      about: "On the road most weeks visiting sites. Former hospital trial coordinator. Coffee-powered.",
+      exp: [["Clinical Research Associate II", "跨国 CRO", "2024 – 至今", "维州和塔州研究中心的现场监查"],
+            ["Clinical Research Associate I", "同一 CRO", "2023 – 2024", ""],
+            ["Clinical Trial Coordinator", "墨尔本一家医院", "2020 – 2023", ""]],
+      edu: [["Bachelor of Science（Pharmacology）", "墨尔本一所大学", "2016 – 2019"]],
+      skills: ["Site monitoring", "Source data verification", "ICH-GCP", "Veeva Vault", "Risk-based monitoring"],
+      activity: "发帖：\"Hobart → Ballarat → Geelong in one week. CRA life ✈️🚗\"",
+      found: { via: "朋友介绍", how: "你大学同学的姐姐和她是同事，同学在 LinkedIn 上帮你们互相介绍了。",
+        msg: "Hi Sarah, Jess suggested I reach out. Thanks so much for accepting! I'm exploring clinical research and would love to hear how you went from coordinator to CRA. Could I buy you a coffee when you're back in Melbourne?" },
+      hooks: ["她几乎每周出差", "她从 coordinator 转成 CRA", "你们有共同的朋友 Jess"] },
+    lead: { headline: "Data & Analytics Team Lead | Health services | Building teams people trust with their data", conn: "500+",
+      about: "Leading an 8-person team across reporting, analytics and data engineering. I hire graduates most years and love watching people grow.",
+      exp: [["Team Lead, Data & Analytics", "墨尔本一家医疗服务机构", "2022 – 至今", "带 8 人团队，负责招聘"],
+            ["Senior Analyst", "同一机构", "2018 – 2022", ""],
+            ["BI Developer", "一家咨询公司", "2014 – 2018", ""]],
+      edu: [["Bachelor of Information Technology", "墨尔本一所大学", "2010 – 2013"]],
+      skills: ["Team leadership", "Hiring", "SQL", "Power BI", "Data strategy"],
+      activity: "发帖：\"We're not hiring right now, but here's what made our last graduate hire stand out...\"",
+      found: { via: "LinkedIn 帖子", how: "他发帖讲上一次招 graduate 看重什么，你在下面留言，然后私信了他。",
+        msg: "Hi Daniel, your post on what made your last graduate hire stand out was really useful, especially the point about explaining your own work simply. I'm early in my health data career and would love 15 minutes of your perspective. No job ask, just trying to learn how teams like yours work." },
+      hooks: ["他发帖讲 graduate 招聘", "他带 8 人团队", "他几乎每年都招 graduate"] },
+    nurse: { headline: "Clinical Informatics Lead | Ex-ICU RN | Making the EMR work for clinicians, not against them", conn: "500+",
+      about: "Ten years in ICU taught me what clinicians actually need from technology. Now I help make sure our systems deliver it.",
+      exp: [["Clinical Informatics Lead", "墨尔本一家私立医院", "2023 – 至今", "电子病历上线、临床流程、培训医护"],
+            ["Clinical Informatics Nurse", "同一医院", "2021 – 2023", ""],
+            ["ICU Registered Nurse", "墨尔本一家公立医院", "2011 – 2021", ""]],
+      edu: [["Bachelor of Nursing", "墨尔本一所大学", "2007 – 2010"], ["Graduate Certificate in Health Informatics", "墨尔本一所大学", "2020"]],
+      skills: ["Clinical workflows", "EMR implementation", "Change management", "Clinician training"],
+      activity: "发帖：\"Go-live week done. Nurses are tired, I'm tired, but medication errors on the pilot ward are down.\"",
+      found: { via: "LinkedIn \"你可能认识的人\"", how: "LinkedIn 推荐了她，你看到她那条电子病历上线的帖子，就发了好友请求。",
+        msg: "Hi Grace, congrats on the go-live, the drop in medication errors is amazing. I'm coming from a public health background and really curious about clinical informatics. Would you be up for a coffee sometime? I'd love to hear the clinician side of things." },
+      hooks: ["她刚完成电子病历上线", "她做了 10 年 ICU 护士", "她不太喜欢没进过病房的 data people"] },
+    prof: { headline: "Associate Professor of Epidemiology | Cardiovascular & chronic disease | PhD supervisor", conn: "500+",
+      about: "I lead cohort studies on cardiovascular risk and supervise a small group of PhD students.",
+      exp: [["Associate Professor", "墨尔本一所大学", "2019 – 至今", "心血管和慢性病队列研究，指导博士生"],
+            ["Senior Research Fellow", "同一大学", "2013 – 2019", ""],
+            ["Postdoctoral Fellow", "英国一所大学", "2009 – 2013", ""]],
+      edu: [["PhD, Epidemiology", "英国一所大学", "2005 – 2009"], ["MSc, Medical Statistics", "英国一所大学", "2004 – 2005"]],
+      skills: ["Cohort studies", "Causal inference", "Grant writing", "Supervision"],
+      activity: "分享：\"Our team has a new NHMRC grant on cardiovascular risk in migrant communities. PhD scholarship to be advertised early next year.\"",
+      found: { via: "大学官网 + 邮件", how: "在学院官网看到他的研究方向，发了邮件。教授一般更常看邮件，不太看 LinkedIn。",
+        msg: "Dear Associate Professor Hughes, I'm a recent Master of Epidemiology graduate and read your team's work on cardiovascular risk in migrant communities with great interest. Would you be willing to meet briefly? I'd be grateful for 20 minutes of your advice on research careers." },
+      hooks: ["他刚拿到一个关于移民心血管风险的 grant", "他在英国做过博后", "他不喜欢被当成找工作的跳板"] },
+    lina: { headline: "Data Analyst @ health insurer | SQL · Python · Tableau | Ex-international student, happy to help 🙂", conn: "500+",
+      about: "Came to Melbourne for my Master's, job-hunted for most of a year, now two years into my first analyst role. If you're an international student going through it — I see you.",
+      exp: [["Data Analyst", "一家健康险公司", "2024 – 至今", "理赔数据分析、Tableau 报表"],
+            ["Data Analyst Intern（6 个月）", "同一公司", "2024", "实习后转正"],
+            ["Retail Assistant · 兼职", "商场门店", "2022 – 2023", ""]],
+      edu: [["Master of Data Science", "墨尔本一所大学", "2021 – 2023"], ["统计学本科", "中国一所大学", "2017 – 2021"]],
+      skills: ["SQL", "Python", "Tableau", "Claims data", "A/B testing"],
+      activity: "发帖：\"2 years ago today I got my first offer in Australia after 87 applications. To everyone still applying: 加油.\"",
+      found: { via: "留学生校友群 → LinkedIn", how: "在墨尔本留学生校友群里看到她分享求职经验，然后在 LinkedIn 加了她。",
+        msg: "Hi Lina! Your post about the 87 applications really resonated. I'm also from China and finishing up in Melbourne. Would you be up for a coffee? I'd love to hear about your experience, and happy to share what I've learned too." },
+      hooks: ["她投了 87 份才拿到 offer", "她是实习转正的", "你们都是中国留学生"] },
+    founder: { headline: "Founder & CEO @ telehealth startup | Making specialist care accessible in regional Australia", conn: "500+",
+      about: "Ex-big tech PM. Building telehealth software so regional patients don't drive four hours for a 15-minute specialist appointment.",
+      exp: [["Founder & CEO", "远程医疗软件初创公司（约 15 人）", "2021 – 至今", ""],
+            ["Product Manager", "一家大型科技公司", "2016 – 2021", ""],
+            ["Software Engineer", "一家软件公司", "2012 – 2016", ""]],
+      edu: [["Bachelor of Software Engineering", "墨尔本一所大学", "2008 – 2011"]],
+      skills: ["Product", "Fundraising", "Telehealth", "Go-to-market"],
+      activity: "发帖：\"We just signed our 10th regional health service! Not hiring right now, but always happy to chat to curious people.\"",
+      found: { via: "Pitch night", how: "你去了一个健康科技 pitch night，听了他的演讲，会后在 LinkedIn 加了他。",
+        msg: "Hi Mark, I caught your pitch on Thursday. The stat about regional specialist wait times really stuck with me. I'm interested in where health data meets product. Would you have time for a coffee? I'd love to hear how you think about the market." },
+      hooks: ["他们刚签下第 10 家地区医疗机构", "地区患者看专科要开车 4 小时", "他喜欢有自己观点的人"] },
+    recruiter: { headline: "Senior Recruitment Consultant | Health, Data & Analytics | Melbourne", conn: "500+",
+      about: "I place analysts, data engineers and health informatics people across Victorian health services. Ask me about salary benchmarks.",
+      exp: [["Senior Recruitment Consultant", "一家招聘中介", "2022 – 至今", ""],
+            ["Recruitment Consultant", "同一中介", "2019 – 2022", ""],
+            ["HR Coordinator", "墨尔本一家医院", "2016 – 2019", ""]],
+      edu: [["Bachelor of Business（HR）", "墨尔本一所大学", "2012 – 2015"]],
+      skills: ["Recruitment", "Health sector", "Salary benchmarking", "Candidate coaching"],
+      activity: "发帖：\"Hot take: a 1-page CV with 3 clear wins beats a 4-page CV every time.\"",
+      found: { via: "她发的岗位", how: "她在 LinkedIn 发了一个 junior data analyst 合同岗位，你投递之后约她聊聊市场。",
+        msg: "Hi Rachel, I applied for the junior data analyst contract you posted. Whatever the outcome, I'd really value 15 minutes to understand what health employers are looking for right now. Would you be open to a quick coffee or call?" },
+      hooks: ["她认为 1 页简历最好", "她以前在医院做 HR", "你投了她发的岗位"] },
+    ops: { headline: "Operations Manager | Community health | Waitlists, rosters and the occasional miracle", conn: "280",
+      about: "Keeping a busy community health service running. I don't build the reports, but I live by them.",
+      exp: [["Operations Manager", "墨尔本一家社区医疗机构", "2020 – 至今", "排班、候诊名单、服务运营"],
+            ["Team Leader, Intake & Access", "同一机构", "2016 – 2020", ""],
+            ["Admin Officer", "同一机构", "2013 – 2016", "从前台行政做起"]],
+      edu: [["Diploma of Business", "TAFE", "2011 – 2012"], ["Graduate Certificate in Health Management", "墨尔本一所大学", "2019"]],
+      skills: ["Operations", "Rostering", "Waitlist management", "Stakeholder engagement"],
+      activity: "在一条澳式足球帖子下评论：\"Pies will be back next year, mark my words.\"",
+      found: { via: "朋友的朋友", how: "你在社区志愿活动中认识了他的同事，同事帮你引荐了他。",
+        msg: "Hi Ben, Sam mentioned you'd be a great person to talk to about how community health services actually use data day to day. Would you be up for a coffee one morning? My shout." },
+      hooks: ["他是 Collingwood（Pies）球迷", "他讨厌术语", "他从前台行政一路做上来"] },
+    meetup: { headline: "Policy Officer | Health system reform | Victorian public sector", conn: "190",
+      about: "Policy nerd, sociology background, still learning SQL.",
+      exp: [["Policy Officer", "维州政府卫生机构", "2023 – 至今", ""],
+            ["Graduate", "维州公共服务 graduate 项目", "2022 – 2023", ""]],
+      edu: [["Master of Public Policy", "墨尔本一所大学", "2020 – 2021"], ["Bachelor of Arts（Sociology）", "墨尔本一所大学", "2016 – 2019"]],
+      skills: ["Policy analysis", "Briefing writing", "Stakeholder consultation"],
+      activity: "（聊天前你还不认识她，只看到她名牌上写着 \"Chloe – Policy\"。这张卡片是聊完之后你在 LinkedIn 搜到的。）",
+      found: { via: "当场偶遇", how: "Meetup 茶歇时，她一个人拿着咖啡在看手机。你没有提前联系，直接走过去搭话。", msg: "" },
+      hooks: ["她名牌上写着 Policy", "今天 meetup 的演讲主题（自己想一个）", "她一个人来"] }
+  };
+
   const DURATIONS = [15, 20, 30];
   const FOCUS = [
     { id: "human", zh: "少点目的性，多点聊天感", en: "Sounding less transactional and more like a natural, curious human: listening, reacting, small talk, sharing a bit of themselves, asking for things only when the moment is right." },
@@ -450,13 +628,52 @@ details > div { margin-top: 8px; display: grid; gap: 8px; font-size: 0.9rem; }
   personaSel.addEventListener("change", () => { store.set("cc.persona", personaSel.value); renderPersona(); });
   $("bg").addEventListener("input", () => store.set("cc.bg", $("bg").value));
 
+  const FULLNAMES = { cda: "Priya Sharma", ra: "Tom Nguyen", ctc: "Mei Chen", doh: "James O'Brien", cra: "Sarah Mitchell", lead: "Daniel Kowalski", nurse: "Grace Murphy", prof: "Alan Hughes", lina: "Lina Zhao", founder: "Mark Ellis", recruiter: "Rachel Tan", ops: "Ben Walsh", meetup: "Chloe Bennett" };
+  const fullName = (p) => FULLNAMES[p.id] || p.name;
+
+  function profileText(p) {
+    const pr = PROFILES[p.id]; if (!pr) return "";
+    return [
+      "Your LinkedIn headline: " + pr.headline,
+      "Your career: " + pr.exp.map((e) => e[0] + " (" + e[2] + ")").join("; "),
+      "Your education: " + pr.edu.map((e) => e[0] + " (" + e[2] + ")").join("; "),
+      "Your recent LinkedIn activity: " + pr.activity,
+      "How this person found you: " + pr.found.how,
+      pr.found.msg ? "The message they sent you before this meeting: \"" + pr.found.msg + "\"" : "They did not contact you beforehand.",
+      "If they mention something specific from your profile or recent post, you notice they did their homework and warm up a little. If they ask things that are obviously on your profile, it feels lazy."
+    ].join("\n");
+  }
+
   function renderPersona() {
     const p = personaById(personaSel.value);
+    const pr = PROFILES[p.id];
     const card = $("persona-card"); card.replaceChildren();
-    card.append(el("strong", null, p.name + " · " + p.title), el("span", "muted", p.org), el("span", null, p.zh));
+    const top = el("div", "li-top");
+    top.append(el("div", "li-avatar", p.name[0]));
+    const id = el("div", "li-id");
+    id.append(el("strong", null, fullName(p)), el("span", "li-head", pr ? pr.headline : p.title), el("span", "muted", "Melbourne, Victoria, Australia · " + (pr ? pr.conn : "") + " connections"));
+    top.appendChild(id); card.appendChild(top);
+    card.appendChild(el("p", "li-zh", p.zh));
+    if (!pr) return renderWho(p);
+    const sect = (title, open, fill) => { const d = el("details", "li-sec"); if (open) d.open = true; d.appendChild(el("summary", null, title)); const b = el("div"); fill(b); d.appendChild(b); card.appendChild(d); };
+    sect("你是怎么找到 Ta 的", true, (b) => {
+      b.append(el("span", "chip", pr.found.via), el("p", null, pr.found.how));
+      if (pr.found.msg) { b.append(el("span", "label", "你发出的联系消息"), el("blockquote", "li-msg", pr.found.msg)); }
+      const ul = el("ul", "li-hooks"); pr.hooks.forEach((h) => ul.appendChild(el("li", null, h)));
+      b.append(el("span", "label", "可以自然聊起的点"), ul);
+    });
+    sect("About", false, (b) => b.appendChild(el("p", null, pr.about)));
+    sect("最近动态", false, (b) => b.appendChild(el("p", null, pr.activity)));
+    sect("Experience", false, (b) => pr.exp.forEach(([role, org, when, desc]) => { const r = el("div", "li-item"); r.append(el("strong", null, role), el("span", null, org), el("span", "muted mono", when)); if (desc) r.append(el("span", "muted", desc)); b.appendChild(r); }));
+    sect("Education", false, (b) => pr.edu.forEach(([deg, sch, when]) => { const r = el("div", "li-item"); r.append(el("strong", null, deg), el("span", null, sch), el("span", "muted mono", when)); b.appendChild(r); }));
+    sect("Skills", false, (b) => { const w = el("div", "row"); pr.skills.forEach((s) => w.appendChild(el("span", "chip", s))); b.appendChild(w); });
+    card.appendChild(el("p", "credit", "人物和资料均为虚构，仅用于练习。"));
+    renderWho(p);
+  }
+  function renderWho(p) {
     if (state.phase === "setup" || state.phase === "done") {
       $("avatar").textContent = p.name[0];
-      $("who-name").textContent = p.name;
+      $("who-name").textContent = fullName(p);
       $("who-role").textContent = p.title + " · " + p.org;
     }
   }
@@ -546,7 +763,8 @@ details > div { margin-top: 8px; display: grid; gap: 8px; font-size: 0.9rem; }
     return [
       "You are playing a real person in a face-to-face coffee chat, so a job seeker can practise networking in English. This must feel like talking to an actual human, not a chatbot. Never mention being an AI and never coach the job seeker inside the conversation.",
       "",
-      "YOUR CHARACTER: " + p.en,
+      "YOUR CHARACTER: " + p.en + " Your full name is " + fullName(p) + ".",
+      profileText(p),
       "YOUR MOOD TODAY: " + d.en,
       "SETTING: " + (p.setting ? p.setting + state.minutes + " minutes long." : "A café in Melbourne. The job seeker messaged you on LinkedIn asking for a coffee chat. Planned length: " + state.minutes + " minutes.") + " Elapsed: about " + elapsed + " minutes. Your engagement right now: " + state.engagement + "/100.",
       "",
