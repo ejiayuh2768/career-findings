@@ -1332,7 +1332,7 @@ details > div { margin-top: 8px; display: grid; gap: 8px; font-size: 0.9rem; }
     getSample().then((s) => { if (!s) notice("这里无法连接 Claude，对方不能回复。请在 claude.ai 登录后打开这个页面。"); });
   });
 
-  $("btn-send").addEventListener("click", send);
+  $("btn-send").addEventListener("click", () => send());
   $("input").addEventListener("keydown", (e) => { if (e.key === "Enter" && !e.shiftKey && !e.isComposing) { e.preventDefault(); send(); } });
 
   $("btn-end").addEventListener("click", async () => {
