@@ -127,6 +127,10 @@ textarea { resize: vertical; min-height: 72px; }
 .meter .delta.up { color: var(--good); } .meter .delta.down { color: var(--bad); }
 .notes-off .meter { display: none; }
 .toggle { display: flex; align-items: center; gap: 6px; font-size: 0.82rem; color: var(--muted); cursor: pointer; }
+.say { border: 0; background: none; padding: 0 4px; font-size: 0.8rem; color: var(--muted); cursor: pointer; align-self: flex-start; }
+.say:hover { color: var(--accent); }
+.voice-box { display: grid; gap: 8px; }
+.voice-box textarea { min-height: 140px; font-size: 0.8rem; font-family: var(--font-mono); }
 .quick { display: flex; flex-wrap: wrap; gap: 6px; }
 .quick button { border: 1px solid var(--line); background: var(--bg); border-radius: 999px; padding: 3px 10px; font-size: 0.82rem; color: var(--muted); }
 .quick button:hover { color: var(--fg); border-color: var(--muted); }
@@ -240,6 +244,14 @@ details > div { margin-top: 8px; display: grid; gap: 8px; font-size: 0.9rem; }
           <button class="btn primary" type="button" id="btn-random">🎲 随机生成一个新的人</button>
           <button class="btn" type="button" id="btn-reroll-found">换个认识方式</button>
         </div>
+        <details>
+          <summary>想真正开口说？用 Claude App 语音模式</summary>
+          <div class="voice-box">
+            <p>这个页面拿不到麦克风权限。想完全用嘴说、用耳朵听，可以把当前这个人一键复制成设定，粘贴到 Claude App 的新对话里，然后点语音模式按钮开始聊。说 "END" 结束，它会给你中文点评。语音模式里没有实时旁注，也不会存进练习记录。</p>
+            <div class="row"><button class="btn" type="button" id="btn-voice-copy">复制语音模式设定</button><span class="hint" id="voice-copy-msg"></span></div>
+            <textarea id="voice-prompt" readonly hidden></textarea>
+          </div>
+        </details>
         <label class="field"><span>你的背景（只用于点评，可选）</span>
           <textarea id="bg" placeholder="例：公共卫生硕士，墨尔本在读，会 R 和一点 SQL，想找 data analyst 或 research assistant 入门岗位"></textarea>
         </label>
@@ -300,6 +312,7 @@ details > div { margin-top: 8px; display: grid; gap: 8px; font-size: 0.9rem; }
           <div class="row">
             <span class="meter" id="meter" hidden title="对方此刻有多投入，会随你的每句话变化"><span>对方投入度</span><span class="bar"><i id="meter-fill" style="width:50%"></i></span><span class="delta" id="meter-delta"></span></span>
             <label class="toggle"><input type="checkbox" id="notes-toggle" checked> 实时旁注</label>
+            <label class="toggle" id="tts-wrap"><input type="checkbox" id="tts-toggle" checked> 🔊 朗读</label>
             <span class="clock" id="clock">00:00</span>
             <button class="btn" id="btn-end" hidden>结束并点评</button>
           </div>
@@ -316,7 +329,7 @@ details > div { margin-top: 8px; display: grid; gap: 8px; font-size: 0.9rem; }
             <textarea id="input" placeholder="Hi! Thanks so much for making the time...（动作可以写在括号里，比如 (laughs)）"></textarea>
             <div class="quick" id="quick" aria-label="小反应"></div>
             <div class="row">
-              <span class="hint">Enter 发送 · Shift+Enter 换行 · 你回得快慢对方也感觉得到</span>
+              <span class="hint">🎤 想用说的：点手机键盘上的麦克风键（iPhone 在键盘右下角，安卓在键盘上方），说完检查一下再发送 · Enter 发送</span>
               <button class="btn primary" id="btn-send">发送</button>
             </div>
           </div>
@@ -1052,6 +1065,8 @@ details > div { margin-top: 8px; display: grid; gap: 8px; font-size: 0.9rem; }
     const g = el("div", "turn them");
     if (turn.a) g.appendChild(el("span", "act", "(" + turn.a + ")"));
     const b = el("div", "msg them"); g.appendChild(b);
+    if (tts.ok) { const sb = el("button", "say", "🔊 再听一遍"); sb.type = "button"; sb.addEventListener("click", () => speak(turn.t, true)); g.appendChild(sb); }
+    speak(turn.t);
     const notes = [];
     if (turn.u) notes.push(["你刚才", turn.u]);
     if (turn.n) notes.push(["对方", turn.n]);
@@ -1068,6 +1083,65 @@ details > div { margin-top: 8px; display: grid; gap: 8px; font-size: 0.9rem; }
     g.appendChild(b); m.appendChild(g); m.scrollTop = m.scrollHeight;
     return g;
   }
+
+  // ---------- Read replies aloud (speechSynthesis; no microphone needed) ----------
+  const tts = { ok: "speechSynthesis" in window && typeof SpeechSynthesisUtterance !== "undefined" };
+  function voiceFor(name) {
+    try {
+      const vs = speechSynthesis.getVoices().filter((v) => /^en/i.test(v.lang));
+      if (!vs.length) return null;
+      const au = vs.filter((v) => /en-AU/i.test(v.lang));
+      const pool = au.length ? au.concat(vs.filter((v) => /en-GB/i.test(v.lang))) : vs;
+      let h = 0; for (const c of name || "") h = (h * 31 + c.charCodeAt(0)) >>> 0;
+      return pool[h % pool.length];
+    } catch { return null; }
+  }
+  function speak(text, force) {
+    if (!tts.ok || (!force && !$("tts-toggle").checked) || !text) return;
+    try {
+      speechSynthesis.cancel();
+      const u = new SpeechSynthesisUtterance(text.replace(/\([^)]*\)/g, ""));
+      const v = voiceFor(state.persona && state.persona.full);
+      if (v) { u.voice = v; u.lang = v.lang; } else u.lang = "en-AU";
+      const d = state.diff && state.diff.id;
+      u.rate = d === "busy" || d === "chatty" ? 1.08 : d === "reserved" || d === "cold" ? 0.92 : 1;
+      speechSynthesis.speak(u);
+    } catch {}
+  }
+  if (!tts.ok) $("tts-wrap").hidden = true;
+  else { try { speechSynthesis.getVoices(); speechSynthesis.onvoiceschanged = () => {}; } catch {} }
+  $("tts-toggle").checked = store.get("cc.tts") !== "off";
+  $("tts-toggle").addEventListener("change", () => { store.set("cc.tts", $("tts-toggle").checked ? "on" : "off"); if (!$("tts-toggle").checked) try { speechSynthesis.cancel(); } catch {} });
+
+  function voiceModePrompt() {
+    const p = cur, d = diffById(radio("difficulty")), mins = Number(radio("duration"));
+    const fo = FOCUS.find((x) => x.id === focusSel.value) || FOCUS[0];
+    const spont = p.found.mode === "spont";
+    return [
+      "我们来做一个英文 coffee chat 角色扮演，我在墨尔本找工作，想练习说话更自然、少点目的性。这是语音对话，请像真人一样说话。",
+      "",
+      "【你扮演的人】",
+      p.en + " Full name: " + fullName(p) + ".",
+      profileText(p),
+      "Mood today: " + d.en,
+      "Setting: " + (spont ? p.found.setting : "A café in Melbourne, a coffee chat arranged in advance, about " + mins + " minutes."),
+      "What I'm practising: " + fo.en,
+      "",
+      "【规则】",
+      "1. Speak natural, spoken Australian-workplace English, usually 1–3 short sentences, like a real person on a voice call. No lists, no stage directions, no emojis.",
+      "2. React to small things (jokes, nervousness, long pauses, me rambling). Let me lead; answer what I ask, sometimes ask back.",
+      "3. Warm up when I listen, react and share a bit of myself; cool down (shorter answers, wrapping up) if I sound transactional, fire questions like an interview, or ask for a job/referral too early.",
+      "4. Never break character and never coach me during the chat.",
+      "5. " + (spont ? "I'll walk up to you and start talking." : "You start by greeting me."),
+      "6. 当我说 \"END\" 时结束角色扮演，用简体中文点评：总分 1–10；聊天感/目的性单独打分；关键瞬间（你的投入度什么时候升或降、为什么）；我哪些句子听起来目的性强，给出更自然的英文说法；英文发音或表达里不自然的地方；有没有要到下一步；下次最该改的 3 条。"
+    ].join("\n");
+  }
+  $("btn-voice-copy").addEventListener("click", () => {
+    const text = voiceModePrompt(), ta = $("voice-prompt"), msg = $("voice-copy-msg");
+    ta.value = text; ta.hidden = false;
+    const fallback = () => { ta.focus(); ta.select(); msg.textContent = "自动复制不可用，已全选下面的文字，请手动复制。"; };
+    try { navigator.clipboard.writeText(text).then(() => { msg.textContent = "已复制。去 Claude App 新建对话粘贴，再点语音按钮。"; }, fallback); } catch { fallback(); }
+  });
 
   async function send(forced) {
     const ta = $("input");
