@@ -251,6 +251,7 @@ a { color: var(--me); }
 
 <script>
 /* ================= data ================= */
+const APP_VERSION = "2026.10.16";
 const BUILTIN = {
   maya: {
     name: "Maya", city: "Brooklyn, NY", tz: "America/New_York", lang: "en-US", color: "#D2603A", accent: "American",
@@ -1286,6 +1287,20 @@ function openSettings() {
     s.append(row, status);
     s.append(el("h3", null, "安装到手机桌面"));
     s.append(el("p", "empty", "iPhone：用 Safari 打开 → 点分享按钮 → 「添加到主屏幕」。安卓：用 Chrome 打开 → 右上角菜单 → 「添加到主屏幕」或「安装应用」。"));
+    s.append(el("h3", null, "版本"));
+    const vrow = el("div", "row");
+    const upd = el("button", "chip", "检查更新");
+    upd.addEventListener("click", async () => {
+      upd.disabled = true;
+      upd.textContent = "正在更新…";
+      try {
+        if ("serviceWorker" in navigator) for (const r of await navigator.serviceWorker.getRegistrations()) await r.unregister();
+        if (window.caches) for (const k of await caches.keys()) await caches.delete(k);
+      } catch {}
+      location.reload();
+    });
+    vrow.append(el("span", "empty", "当前版本 " + APP_VERSION), upd);
+    s.append(vrow, el("p", "empty", "聊天记录和设置不会因为更新而丢失。"));
     s.append(el("h3", null, "关于数据"));
     s.append(el("p", "empty", "聊天记录、记忆和设置都只存在这台手机的浏览器里。清除浏览器数据会把它们一起删掉。"));
   });
@@ -1562,7 +1577,7 @@ loadConvo();
 renderHeader();
 render();
 setInterval(() => { $("pMeta").textContent = headerMeta(contact()); }, 30000);
-if ("serviceWorker" in navigator && location.protocol === "https:") navigator.serviceWorker.register("sw.js").catch(() => {});
+if ("serviceWorker" in navigator && location.protocol === "https:") navigator.serviceWorker.register("sw.js", { updateViaCache: "none" }).catch(() => {});
 </script>
 </body>
 </html>
